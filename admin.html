@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Admin — Maru</title>
+        <link rel="stylesheet" href="css/style.css" />
+        <style>
+            /* ── Admin-specific styles ── */
+            .admin-page {
+                max-width: 1100px;
+                margin: 0 auto;
+                padding: 2rem 1.5rem 4rem;
+            }
+
+            .admin-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 2rem;
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .admin-header h1 {
+                font-size: 1.6rem;
+                font-weight: 800;
+                color: var(--brown);
+            }
+            .admin-header p {
+                color: var(--muted);
+                font-size: 0.9rem;
+                margin-top: 0.2rem;
+            }
+
+            .btn-new {
+                background: var(--rose);
+                color: var(--white);
+                border: none;
+                padding: 0.65rem 1.4rem;
+                border-radius: 100px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+
+            .btn-new:hover {
+                background: var(--brown);
+            }
+
+            /* ── Products table ── */
+            .admin-table-wrap {
+                background: var(--white);
+                border-radius: var(--radius);
+                box-shadow: var(--shadow);
+                overflow: hidden;
+                margin-bottom: 3rem;
+            }
+
+            .admin-table-wrap table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            thead {
+                background: var(--brown);
+                color: var(--cream);
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+            }
+
+            thead th {
+                padding: 0.85rem 1rem;
+                text-align: left;
+                font-weight: 600;
+            }
+
+            tbody tr {
+                border-bottom: 1px solid #f0e4d8;
+                transition: background 0.15s;
+            }
+
+            tbody tr:last-child {
+                border-bottom: none;
+            }
+            tbody tr:hover {
+                background: #fdf0e8;
+            }
+
+            tbody td {
+                padding: 0.8rem 1rem;
+                vertical-align: middle;
+                font-size: 0.9rem;
+            }
+
+            .admin-thumb {
+                width: 56px;
+                height: 42px;
+                object-fit: cover;
+                border-radius: 8px;
+                display: block;
+            }
+
+            .admin-thumb-emoji {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 56px;
+                height: 42px;
+                background: linear-gradient(135deg, #f8e9e0, #f2d5c8);
+                border-radius: 8px;
+                font-size: 1.6rem;
+            }
+
+            .admin-cat-badge {
+                display: inline-block;
+                background: var(--blush);
+                color: var(--brown);
+                font-size: 0.7rem;
+                font-weight: 600;
+                padding: 0.15rem 0.55rem;
+                border-radius: 100px;
+                margin-top: 0.25rem;
+            }
+
+            .admin-img-count {
+                color: var(--muted);
+                font-size: 0.85rem;
+            }
+
+            .admin-actions {
+                display: flex;
+                gap: 0.5rem;
+            }
+
+            .admin-btn {
+                border: none;
+                padding: 0.35rem 0.85rem;
+                border-radius: 100px;
+                font-size: 0.78rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition:
+                    background 0.2s,
+                    color 0.2s;
+            }
+
+            .admin-btn.edit {
+                background: #e8f4fd;
+                color: #2563eb;
+            }
+            .admin-btn.edit:hover {
+                background: #2563eb;
+                color: var(--white);
+            }
+            .admin-btn.delete {
+                background: #fde8e8;
+                color: #dc2626;
+            }
+            .admin-btn.delete:hover {
+                background: #dc2626;
+                color: var(--white);
+            }
+
+            .table-empty {
+                text-align: center;
+                color: var(--muted);
+                padding: 2.5rem !important;
+                font-size: 0.95rem;
+            }
+
+            /* ── Form section ── */
+            #form-section {
+                background: var(--white);
+                border-radius: var(--radius);
+                box-shadow: var(--shadow);
+                padding: 2rem;
+            }
+
+            #form-title {
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: var(--brown);
+                margin-bottom: 1.5rem;
+            }
+
+            .form-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.2rem;
+                margin-bottom: 1.2rem;
+            }
+
+            .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 0.35rem;
+            }
+            .form-group.full {
+                grid-column: 1 / -1;
+            }
+
+            label {
+                font-size: 0.82rem;
+                font-weight: 600;
+                color: var(--brown);
+                letter-spacing: 0.03em;
+            }
+
+            input[type="text"],
+            input[type="url"],
+            input[type="number"],
+            select,
+            textarea {
+                padding: 0.6rem 0.85rem;
+                border: 1.5px solid var(--blush);
+                border-radius: 10px;
+                font-size: 0.92rem;
+                font-family: var(--font);
+                color: var(--text);
+                background: var(--cream);
+                transition:
+                    border-color 0.2s,
+                    box-shadow 0.2s;
+                outline: none;
+            }
+
+            input:focus,
+            select:focus,
+            textarea:focus {
+                border-color: var(--rose);
+                box-shadow: 0 0 0 3px rgba(201, 123, 90, 0.15);
+            }
+
+            textarea {
+                resize: vertical;
+                min-height: 90px;
+            }
+
+            /* images section */
+            .images-section {
+                border: 1.5px dashed var(--blush);
+                border-radius: 12px;
+                padding: 1.2rem;
+                margin-bottom: 1.4rem;
+            }
+
+            .images-section-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 1rem;
+            }
+
+            .images-section-header span {
+                font-size: 0.82rem;
+                font-weight: 600;
+                color: var(--brown);
+            }
+
+            .images-section-header small {
+                color: var(--muted);
+                font-size: 0.75rem;
+            }
+
+            .btn-add-img {
+                background: var(--blush);
+                color: var(--brown);
+                border: none;
+                padding: 0.4rem 1rem;
+                border-radius: 100px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+
+            .btn-add-img:hover {
+                background: var(--rose);
+                color: var(--white);
+            }
+
+            #images-container {
+                display: flex;
+                flex-direction: column;
+                gap: 0.6rem;
+            }
+
+            .image-field-row {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }
+
+            .img-index {
+                width: 22px;
+                height: 22px;
+                background: var(--rose);
+                color: var(--white);
+                border-radius: 50%;
+                font-size: 0.72rem;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .image-field-row .img-url-input {
+                flex: 1;
+                min-width: 200px;
+            }
+
+            .img-preview-btn,
+            .img-remove-btn {
+                border: none;
+                padding: 0.4rem 0.6rem;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 0.85rem;
+                transition: background 0.2s;
+            }
+
+            .img-preview-btn {
+                background: #e8f4fd;
+            }
+            .img-preview-btn:hover {
+                background: #bfdbfe;
+            }
+            .img-remove-btn {
+                background: #fde8e8;
+                color: #dc2626;
+            }
+            .img-remove-btn:hover {
+                background: #dc2626;
+                color: var(--white);
+            }
+
+            .img-preview-thumb {
+                width: 100%;
+                max-width: 200px;
+                border-radius: 8px;
+                margin-top: 0.4rem;
+                object-fit: cover;
+                border: 2px solid var(--blush);
+            }
+
+            /* form actions */
+            .form-actions {
+                display: flex;
+                gap: 0.8rem;
+                flex-wrap: wrap;
+            }
+
+            #btn-submit {
+                background: var(--rose);
+                color: var(--white);
+                border: none;
+                padding: 0.75rem 2rem;
+                border-radius: 100px;
+                font-size: 0.95rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.2s;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+            }
+
+            #btn-submit:hover {
+                background: var(--brown);
+            }
+
+            #btn-cancel {
+                background: transparent;
+                color: var(--muted);
+                border: 1.5px solid var(--blush);
+                padding: 0.75rem 1.4rem;
+                border-radius: 100px;
+                font-size: 0.95rem;
+                font-weight: 600;
+                cursor: pointer;
+                display: none;
+                align-items: center;
+                transition:
+                    border-color 0.2s,
+                    color 0.2s;
+            }
+
+            #btn-cancel:hover {
+                border-color: var(--rose);
+                color: var(--rose);
+            }
+
+            /* ── Toast ── */
+            .toast {
+                position: fixed;
+                bottom: 1.5rem;
+                left: 50%;
+                transform: translateX(-50%) translateY(20px);
+                background: var(--brown);
+                color: var(--cream);
+                padding: 0.75rem 1.6rem;
+                border-radius: 100px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                opacity: 0;
+                transition:
+                    opacity 0.25s,
+                    transform 0.25s;
+                z-index: 9999;
+                white-space: nowrap;
+                pointer-events: none;
+            }
+
+            .toast.toast-error {
+                background: #dc2626;
+            }
+
+            .toast.toast-visible {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+
+            /* ── Confirm dialog ── */
+            .confirm-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(61, 43, 31, 0.5);
+                backdrop-filter: blur(3px);
+                z-index: 600;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 1rem;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s;
+            }
+
+            .confirm-overlay.open {
+                opacity: 1;
+                pointer-events: all;
+            }
+
+            .confirm-box {
+                background: var(--white);
+                border-radius: 16px;
+                padding: 2rem;
+                max-width: 380px;
+                width: 100%;
+                text-align: center;
+                box-shadow: 0 16px 48px rgba(61, 43, 31, 0.2);
+                transform: scale(0.95);
+                transition: transform 0.2s;
+            }
+
+            .confirm-overlay.open .confirm-box {
+                transform: scale(1);
+            }
+
+            .confirm-icon {
+                font-size: 2.5rem;
+                margin-bottom: 0.8rem;
+            }
+
+            #confirm-message {
+                font-size: 1rem;
+                font-weight: 600;
+                color: var(--brown);
+                margin-bottom: 1.5rem;
+            }
+
+            .confirm-btns {
+                display: flex;
+                gap: 0.8rem;
+                justify-content: center;
+            }
+
+            #confirm-yes {
+                background: #dc2626;
+                color: var(--white);
+                border: none;
+                padding: 0.6rem 1.5rem;
+                border-radius: 100px;
+                font-weight: 600;
+                cursor: pointer;
+            }
+
+            #confirm-no {
+                background: transparent;
+                color: var(--muted);
+                border: 1.5px solid var(--blush);
+                padding: 0.6rem 1.5rem;
+                border-radius: 100px;
+                font-weight: 600;
+                cursor: pointer;
+            }
+
+            @media (max-width: 640px) {
+                .form-grid {
+                    grid-template-columns: 1fr;
+                }
+                .admin-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- NAVEGACIÓN -->
+        <nav>
+            <a class="nav-logo" href="index.html">Maru</a>
+            <ul>
+                <li><a href="index.html">← Ver catálogo</a></li>
+            </ul>
+        </nav>
+
+        <div class="admin-page">
+            <!-- Header -->
+            <div class="admin-header">
+                <div>
+                    <h1>⚙️ Panel de administración</h1>
+                    <p>
+                        Gestioná tus productos desde acá. Los cambios se guardan
+                        automáticamente.
+                    </p>
+                </div>
+                <button class="btn-new" id="btn-new">+ Nuevo producto</button>
+            </div>
+
+            <!-- Tabla de productos -->
+            <div class="admin-table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Imagen</th>
+                            <th>Nombre / Categoría</th>
+                            <th>Precio</th>
+                            <th>Imágenes</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-tbody">
+                        <!-- renderizado por admin.js -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Formulario -->
+            <section id="form-section">
+                <h2 id="form-title">➕ Nuevo producto</h2>
+
+                <form id="product-form" novalidate>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="name_field"
+                                >Nombre del producto *</label
+                            >
+                            <input
+                                type="text"
+                                id="name_field"
+                                name="name_field"
+                                placeholder="Ej: Jarrón de cerámica blanca"
+                                required
+                            />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="category_field">Categoría *</label>
+                            <input
+                                type="text"
+                                id="category_field"
+                                name="category_field"
+                                list="categories-list"
+                                placeholder="Ej: Flores, Textiles…"
+                                required
+                            />
+                            <datalist id="categories-list">
+                                <option value="Iluminación"></option>
+                                <option value="Plantas"></option>
+                                <option value="Arte"></option>
+                                <option value="Textiles"></option>
+                                <option value="Espejos"></option>
+                                <option value="Flores"></option>
+                                <option value="Muebles"></option>
+                                <option value="Accesorios"></option>
+                            </datalist>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="price_field"
+                                >Precio (en tu moneda) *</label
+                            >
+                            <input
+                                type="number"
+                                id="price_field"
+                                name="price_field"
+                                min="0"
+                                step="0.01"
+                                placeholder="Ej: 15000"
+                                required
+                            />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="emoji_field"
+                                >Emoji de respaldo 🏷️</label
+                            >
+                            <input
+                                type="text"
+                                id="emoji_field"
+                                name="emoji_field"
+                                placeholder="🕯️  (se usa si no hay imagen)"
+                                maxlength="4"
+                            />
+                        </div>
+
+                        <div class="form-group full">
+                            <label for="description_field">Descripción</label>
+                            <textarea
+                                id="description_field"
+                                name="description_field"
+                                placeholder="Describí el producto: materiales, medidas, usos…"
+                            ></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Imágenes -->
+                    <div class="images-section">
+                        <div class="images-section-header">
+                            <div>
+                                <span>Imágenes del producto</span><br />
+                                <small
+                                    >Pegá URLs de imágenes (mínimo 1,
+                                    recomendado 3)</small
+                                >
+                            </div>
+                            <button
+                                type="button"
+                                class="btn-add-img"
+                                id="btn-add-image"
+                            >
+                                + Agregar imagen
+                            </button>
+                        </div>
+                        <div id="images-container">
+                            <!-- filas de imagen se agregan dinámicamente -->
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="btn-submit">
+                            Agregar producto
+                        </button>
+                        <button type="button" id="btn-cancel">
+                            Cancelar edición
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <!-- Confirm dialog -->
+        <div class="confirm-overlay" id="confirm-overlay">
+            <div class="confirm-box">
+                <div class="confirm-icon">⚠️</div>
+                <p id="confirm-message"></p>
+                <div class="confirm-btns">
+                    <button id="confirm-yes">Sí, eliminar</button>
+                    <button id="confirm-no">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="js/store.js"></script>
+        <script src="js/admin.js"></script>
+    </body>
+</html>

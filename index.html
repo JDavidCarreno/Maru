@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Maru — Catálogo</title>
+        <link rel="stylesheet" href="css/style.css" />
+    </head>
+    <body>
+        <!-- NAVEGACIÓN -->
+        <nav>
+            <a class="nav-logo" href="index.html">Maru</a>
+            <ul>
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#catalogo">Catálogo</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+                <li><a href="admin.html" class="nav-admin-btn">⚙️ Admin</a></li>
+            </ul>
+        </nav>
+
+        <!-- HERO -->
+        <section class="hero" id="inicio">
+            <span class="hero-badge">✨ Colección 2025</span>
+            <h1>Dale vida a cada rincón de tu <em>hogar</em></h1>
+            <p>
+                Decoraciones únicas, hechas con amor, para espacios que cuentan
+                historias. Encontrá la pieza perfecta para vos.
+            </p>
+            <a href="#catalogo" class="hero-btn">Ver catálogo →</a>
+        </section>
+
+        <!-- CATÁLOGO -->
+        <main class="section" id="catalogo">
+            <h2 class="section-title">Nuestros productos</h2>
+            <p class="section-sub">Cada pieza, seleccionada con cuidado.</p>
+            <div class="divider"></div>
+            <div class="grid" id="product-grid">
+                <!-- se renderiza por catalog.js -->
+            </div>
+        </main>
+
+        <!-- FOOTER -->
+        <footer id="contacto">
+            <p>¿Tenés alguna consulta? Escribinos 💌</p>
+            <p style="margin-top: 0.5rem">
+                <strong>maru@email.com</strong>
+            </p>
+            <p style="margin-top: 1.5rem; font-size: 0.8rem; opacity: 0.5">
+                © 2025 Maru · Todos los derechos reservados
+            </p>
+        </footer>
+
+        <!-- MODAL DE PRODUCTO -->
+        <div
+            class="modal-overlay"
+            id="modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+        >
+            <div class="modal">
+                <!-- galería -->
+                <div class="modal-gallery">
+                    <button
+                        class="modal-close"
+                        id="modal-close-btn"
+                        aria-label="Cerrar"
+                    >
+                        ✕
+                    </button>
+                    <div id="gallery-main-area"><!-- imagen principal --></div>
+                    <button class="gallery-arrow prev" aria-label="Anterior">
+                        ‹
+                    </button>
+                    <button class="gallery-arrow next" aria-label="Siguiente">
+                        ›
+                    </button>
+                    <div class="gallery-dots" id="gallery-dots"></div>
+                </div>
+
+                <!-- miniaturas -->
+                <div class="gallery-thumbs" id="gallery-thumbs"></div>
+
+                <!-- info -->
+                <div class="modal-body">
+                    <p class="modal-tag" id="modal-tag"></p>
+                    <h2 class="modal-title" id="modal-title"></h2>
+                    <p class="modal-price" id="modal-price"></p>
+                    <p class="modal-desc" id="modal-desc"></p>
+                    <div class="modal-actions">
+                        <button class="btn-primary" onclick="closeModal()">
+                            Cerrar
+                        </button>
+                        <button class="btn-secondary" onclick="closeModal()">
+                            💬 Consultar por WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="js/store.js"></script>
+        <script src="js/catalog.js"></script>
+    </body>
+</html>
