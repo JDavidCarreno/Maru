@@ -30,7 +30,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const {
       data: { session },
     } = await db.auth.getSession();
-    if (session) await initAdmin();
+    // verificamos que sea un usuario real (con email), no una sesión anónima
+    if (session?.user?.email) await initAdmin();
   } catch (err) {
     console.error("Error al verificar sesión:", err);
   }
