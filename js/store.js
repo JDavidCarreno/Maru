@@ -50,8 +50,28 @@ async function updateProduct(id, product) {
 }
 
 async function deleteProduct(id) {
-  const { error } = await db.from(TABLE).delete().eq("id", id);
+  // primero obtenemos las imágenes del producto
+  const { data: product } = await db
+    .from(TABLE)
+    .select("images")
+    .eq("id", id)
+    .single();
 
+  // borramos las imágenes del bucket
+  if (product?.images?.length) {
+    const paths = product.images
+      .map((url) => url.split(`${BUCKET}/`)[1])
+      .filter(Boolean);
+    if (paths.length) {
+      const { error: storageError } = await db.storage
+        .from(BUCKET)
+        .remove(paths);
+      if (storageError) console.error("deleteImages:", storageError.message);
+    }
+  }
+
+  // borramos el producto de la base de datos
+  const { error } = await db.from(TABLE).delete().eq("id", id);
   if (error) {
     console.error("deleteProduct:", error.message);
     return false;

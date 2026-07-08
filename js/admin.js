@@ -5,12 +5,59 @@
 let editingId = null;
 let existingImages = []; // URLs ya guardadas al editar un producto
 
+// ── AUTH ─────────────────────────────────────────────────
+
+async function initAdmin() {
+  document.getElementById("login-overlay").style.display = "none";
+  await renderAdminTable();
+  bindFormEvents();
+}
+
+async function logout() {
+  await db.auth.signOut();
+  location.reload();
+}
+
 // ── INIT ─────────────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await renderAdminTable();
-  bindFormEvents();
+  // primero adjuntamos los listeners sincronamente
+  document.getElementById("login-form").addEventListener("submit", handleLogin);
+  document.getElementById("btn-logout").addEventListener("click", logout);
+
+  // luego verificamos si ya hay sesión activa
+  try {
+    const {
+      data: { session },
+    } = await db.auth.getSession();
+    if (session) await initAdmin();
+  } catch (err) {
+    console.error("Error al verificar sesión:", err);
+  }
 });
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById("login-email").value.trim();
+  const password = document.getElementById("login-password").value;
+  const errorEl = document.getElementById("login-error");
+  const submitBtn = document.getElementById("login-submit");
+
+  errorEl.style.display = "none";
+  submitBtn.textContent = "Entrando…";
+  submitBtn.disabled = true;
+
+  const { error } = await db.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    errorEl.textContent = "Email o contraseña incorrectos.";
+    errorEl.style.display = "block";
+    submitBtn.textContent = "Entrar";
+    submitBtn.disabled = false;
+  } else {
+    await initAdmin();
+  }
+}
 
 // ── TABLE ────────────────────────────────────────────────
 
