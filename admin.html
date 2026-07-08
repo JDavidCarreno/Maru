@@ -340,12 +340,51 @@
             }
 
             .img-preview-thumb {
-                width: 100%;
-                max-width: 200px;
+                width: 80px;
+                height: 60px;
                 border-radius: 8px;
-                margin-top: 0.4rem;
                 object-fit: cover;
                 border: 2px solid var(--blush);
+                flex-shrink: 0;
+            }
+
+            .img-existing-label {
+                font-size: 0.82rem;
+                color: var(--muted);
+                flex: 1;
+            }
+
+            .img-status {
+                font-size: 0.82rem;
+                color: var(--muted);
+                min-width: 120px;
+            }
+
+            .img-pick-area {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                flex: 1;
+                flex-wrap: wrap;
+            }
+
+            .img-pick-btn {
+                background: var(--blush);
+                color: var(--brown);
+                border: none;
+                padding: 0.45rem 1rem;
+                border-radius: 100px;
+                font-size: 0.82rem;
+                font-weight: 600;
+                cursor: pointer;
+                white-space: nowrap;
+                transition: background 0.2s;
+                flex-shrink: 0;
+            }
+
+            .img-pick-btn:hover {
+                background: var(--rose);
+                color: var(--white);
             }
 
             /* form actions */
@@ -607,19 +646,6 @@
                             />
                         </div>
 
-                        <div class="form-group">
-                            <label for="emoji_field"
-                                >Emoji de respaldo 🏷️</label
-                            >
-                            <input
-                                type="text"
-                                id="emoji_field"
-                                name="emoji_field"
-                                placeholder="🕯️  (se usa si no hay imagen)"
-                                maxlength="4"
-                            />
-                        </div>
-
                         <div class="form-group full">
                             <label for="description_field">Descripción</label>
                             <textarea
@@ -677,6 +703,8 @@
             </div>
         </div>
 
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="js/supabase.js"></script>
         <script src="js/store.js"></script>
         <script src="js/admin.js"></script>
     </body>

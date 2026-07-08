@@ -7,10 +7,13 @@ let currentImages = [];
 
 // ── RENDER GRID ──────────────────────────────────────────
 
-function renderGrid() {
-  const grid = document.getElementById('product-grid');
-  const products = getProducts();
-  grid.innerHTML = '';
+async function renderGrid() {
+  const grid = document.getElementById("product-grid");
+  grid.innerHTML =
+    '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:3rem">Cargando productos…</p>';
+
+  const products = await getProducts();
+  grid.innerHTML = "";
 
   if (products.length === 0) {
     grid.innerHTML = `
@@ -21,175 +24,174 @@ function renderGrid() {
     return;
   }
 
-  products.forEach(product => {
-    const coverHTML = product.images && product.images.length
-      ? `<img class="card-img" src="${product.images[0]}" alt="${product.name}" loading="lazy" onerror="this.outerHTML='<div class=\\'card-img-placeholder\\'>${product.emoji || '🏷️'}</div>'">`
-      : `<div class="card-img-placeholder">${product.emoji || '🏷️'}</div>`;
+  products.forEach((product) => {
+    const images = product.images || [];
+    const coverHTML = images.length
+      ? `<img class="card-img" src="${images[0]}" alt="${product.name}" loading="lazy">`
+      : `<div class="card-img-placeholder">🏷️</div>`;
 
-    const card = document.createElement('article');
-    card.className = 'card';
-    card.setAttribute('role', 'button');
-    card.setAttribute('tabindex', '0');
-    card.setAttribute('aria-label', `Ver ${product.name}`);
-    card.dataset.id = product.id;
+    const card = document.createElement("article");
+    card.className = "card";
+    card.setAttribute("role", "button");
+    card.setAttribute("tabindex", "0");
+    card.setAttribute("aria-label", `Ver ${product.name}`);
 
     card.innerHTML = `
       ${coverHTML}
       <div class="card-body">
         <span class="card-tag">${product.category}</span>
         <h3 class="card-title">${product.name}</h3>
-        <p class="card-desc">${truncate(product.description, 90)}</p>
+        <p class="card-desc">${truncate(product.description || "", 90)}</p>
         <div class="card-footer">
           <span class="card-price">${formatPrice(product.price)}</span>
           <span class="card-cta">Ver más</span>
         </div>
       </div>`;
 
-    card.addEventListener('click', () => openModal(product.id));
-    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openModal(product.id); });
+    card.addEventListener("click", () => openModal(product));
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") openModal(product);
+    });
 
     grid.appendChild(card);
   });
 }
 
 function truncate(str, max) {
-  return str.length > max ? str.slice(0, max).trimEnd() + '…' : str;
+  return str.length > max ? str.slice(0, max).trimEnd() + "…" : str;
 }
 
 // ── MODAL ────────────────────────────────────────────────
 
-function openModal(productId) {
-  const products = getProducts();
-  const product = products.find(p => p.id === productId);
-  if (!product) return;
-
-  currentImages = product.images && product.images.length
-    ? product.images
-    : [null]; // null = placeholder con emoji
-
+function openModal(product) {
+  currentImages = product.images && product.images.length ? product.images : [];
   currentGalleryIndex = 0;
+
   renderModalContent(product);
 
-  const overlay = document.getElementById('modal-overlay');
-  overlay.classList.add('open');
-  document.body.style.overflow = 'hidden';
-
-  // focus trap — accesibilidad
-  overlay.querySelector('.modal-close').focus();
+  const overlay = document.getElementById("modal-overlay");
+  overlay.classList.add("open");
+  document.body.style.overflow = "hidden";
+  overlay.querySelector(".modal-close").focus();
 }
 
 function closeModal() {
-  const overlay = document.getElementById('modal-overlay');
-  overlay.classList.remove('open');
-  document.body.style.overflow = '';
+  document.getElementById("modal-overlay").classList.remove("open");
+  document.body.style.overflow = "";
 }
 
 function renderModalContent(product) {
-  const overlay = document.getElementById('modal-overlay');
+  const overlay = document.getElementById("modal-overlay");
 
-  // ── galería principal ──
-  const mainArea = overlay.querySelector('#gallery-main-area');
-  mainArea.innerHTML = buildMainImage(currentGalleryIndex, product.emoji);
+  // imagen principal
+  overlay.querySelector("#gallery-main-area").innerHTML = buildMainImage(0);
 
-  // ── dots ──
-  const dotsEl = overlay.querySelector('#gallery-dots');
-  dotsEl.innerHTML = currentImages.map((_, i) =>
-    `<button class="gallery-dot ${i === 0 ? 'active' : ''}" data-index="${i}" aria-label="Imagen ${i+1}"></button>`
-  ).join('');
-
-  // ── thumbs ──
-  const thumbsEl = overlay.querySelector('#gallery-thumbs');
-  thumbsEl.innerHTML = currentImages.map((img, i) => {
-    if (img) {
-      return `<img class="gallery-thumb ${i === 0 ? 'active' : ''}" src="${img}" alt="Miniatura ${i+1}" data-index="${i}" onerror="this.outerHTML='<div class=\\'gallery-thumb-placeholder ${i === 0 ? 'active' : ''}\\' data-index=\\'${i}\\'>${product.emoji || '🏷️'}</div>'">`
-    }
-    return `<div class="gallery-thumb-placeholder ${i === 0 ? 'active' : ''}" data-index="${i}">${product.emoji || '🏷️'}</div>`;
-  }).join('');
-
-  // ── info ──
-  overlay.querySelector('#modal-tag').textContent   = product.category;
-  overlay.querySelector('#modal-title').textContent = product.name;
-  overlay.querySelector('#modal-price').textContent = formatPrice(product.price);
-  overlay.querySelector('#modal-desc').textContent  = product.description;
-
-  // Ocultar flechas si solo hay una imagen
-  const arrows = overlay.querySelectorAll('.gallery-arrow');
-  arrows.forEach(a => a.style.display = currentImages.length > 1 ? 'flex' : 'none');
-
-  // ── eventos galería ──
-  bindGalleryEvents(overlay, product);
-}
-
-function buildMainImage(index, emoji) {
-  const img = currentImages[index];
-  if (img) {
-    return `<img class="gallery-main" src="${img}" alt="Imagen ${index+1}" onerror="this.outerHTML='<div class=\\'gallery-main-placeholder\\'>${emoji || '🏷️'}</div>'">`;
-  }
-  return `<div class="gallery-main-placeholder">${emoji || '🏷️'}</div>`;
-}
-
-function bindGalleryEvents(overlay, product) {
   // dots
-  overlay.querySelector('#gallery-dots').addEventListener('click', e => {
-    const btn = e.target.closest('.gallery-dot');
-    if (!btn) return;
-    goToSlide(parseInt(btn.dataset.index), overlay, product.emoji);
-  });
+  overlay.querySelector("#gallery-dots").innerHTML = currentImages
+    .map(
+      (_, i) =>
+        `<button class="gallery-dot ${i === 0 ? "active" : ""}" data-index="${i}" aria-label="Imagen ${i + 1}"></button>`,
+    )
+    .join("");
 
-  // thumbs
-  overlay.querySelector('#gallery-thumbs').addEventListener('click', e => {
-    const thumb = e.target.closest('[data-index]');
-    if (!thumb) return;
-    goToSlide(parseInt(thumb.dataset.index), overlay, product.emoji);
-  });
+  // miniaturas
+  overlay.querySelector("#gallery-thumbs").innerHTML = currentImages
+    .map(
+      (url, i) =>
+        `<img class="gallery-thumb ${i === 0 ? "active" : ""}" src="${url}" alt="Miniatura ${i + 1}" data-index="${i}" loading="lazy">`,
+    )
+    .join("");
 
-  // arrows (re-bind limpiando listeners anteriores clonando)
-  const prevBtn = overlay.querySelector('.gallery-arrow.prev');
-  const nextBtn = overlay.querySelector('.gallery-arrow.next');
+  // info
+  overlay.querySelector("#modal-tag").textContent = product.category;
+  overlay.querySelector("#modal-title").textContent = product.name;
+  overlay.querySelector("#modal-price").textContent = formatPrice(
+    product.price,
+  );
+  overlay.querySelector("#modal-desc").textContent = product.description || "";
 
-  const newPrev = prevBtn.cloneNode(true);
-  const newNext = nextBtn.cloneNode(true);
-  prevBtn.replaceWith(newPrev);
-  nextBtn.replaceWith(newNext);
+  // flechas: solo si hay más de una imagen
+  overlay
+    .querySelectorAll(".gallery-arrow")
+    .forEach(
+      (a) => (a.style.display = currentImages.length > 1 ? "flex" : "none"),
+    );
 
-  newPrev.addEventListener('click', () => goToSlide((currentGalleryIndex - 1 + currentImages.length) % currentImages.length, overlay, product.emoji));
-  newNext.addEventListener('click', () => goToSlide((currentGalleryIndex + 1) % currentImages.length, overlay, product.emoji));
+  bindGalleryEvents(overlay);
 }
 
-function goToSlide(index, overlay, emoji) {
+function buildMainImage(index) {
+  const url = currentImages[index];
+  return url
+    ? `<img class="gallery-main" src="${url}" alt="Imagen ${index + 1}">`
+    : `<div class="gallery-main-placeholder">Sin imagen</div>`;
+}
+
+function bindGalleryEvents(overlay) {
+  overlay.querySelector("#gallery-dots").addEventListener("click", (e) => {
+    const btn = e.target.closest(".gallery-dot");
+    if (btn) goToSlide(parseInt(btn.dataset.index), overlay);
+  });
+
+  overlay.querySelector("#gallery-thumbs").addEventListener("click", (e) => {
+    const thumb = e.target.closest("[data-index]");
+    if (thumb) goToSlide(parseInt(thumb.dataset.index), overlay);
+  });
+
+  const prevBtn = overlay.querySelector(".gallery-arrow.prev").cloneNode(true);
+  const nextBtn = overlay.querySelector(".gallery-arrow.next").cloneNode(true);
+  overlay.querySelector(".gallery-arrow.prev").replaceWith(prevBtn);
+  overlay.querySelector(".gallery-arrow.next").replaceWith(nextBtn);
+
+  prevBtn.addEventListener("click", () =>
+    goToSlide(
+      (currentGalleryIndex - 1 + currentImages.length) % currentImages.length,
+      overlay,
+    ),
+  );
+  nextBtn.addEventListener("click", () =>
+    goToSlide((currentGalleryIndex + 1) % currentImages.length, overlay),
+  );
+}
+
+function goToSlide(index, overlay) {
   currentGalleryIndex = index;
-
-  overlay.querySelector('#gallery-main-area').innerHTML = buildMainImage(index, emoji);
-
-  overlay.querySelectorAll('.gallery-dot').forEach((d, i) => d.classList.toggle('active', i === index));
-  overlay.querySelectorAll('[data-index]').forEach(el => {
-    if (el.classList.contains('gallery-thumb') || el.classList.contains('gallery-thumb-placeholder')) {
-      el.classList.toggle('active', parseInt(el.dataset.index) === index);
-    }
-  });
+  overlay.querySelector("#gallery-main-area").innerHTML = buildMainImage(index);
+  overlay
+    .querySelectorAll(".gallery-dot")
+    .forEach((d, i) => d.classList.toggle("active", i === index));
+  overlay
+    .querySelectorAll(".gallery-thumb")
+    .forEach((t) =>
+      t.classList.toggle("active", parseInt(t.dataset.index) === index),
+    );
 }
 
-// ── KEYBOARD NAVIGATION ──────────────────────────────────
+// ── TECLADO ──────────────────────────────────────────────
 
-document.addEventListener('keydown', e => {
-  const overlay = document.getElementById('modal-overlay');
-  if (!overlay.classList.contains('open')) return;
-
-  if (e.key === 'Escape') closeModal();
-  if (e.key === 'ArrowRight') goToSlide((currentGalleryIndex + 1) % currentImages.length, overlay, null);
-  if (e.key === 'ArrowLeft')  goToSlide((currentGalleryIndex - 1 + currentImages.length) % currentImages.length, overlay, null);
+document.addEventListener("keydown", (e) => {
+  const overlay = document.getElementById("modal-overlay");
+  if (!overlay.classList.contains("open")) return;
+  if (e.key === "Escape") closeModal();
+  if (e.key === "ArrowRight")
+    goToSlide((currentGalleryIndex + 1) % currentImages.length, overlay);
+  if (e.key === "ArrowLeft")
+    goToSlide(
+      (currentGalleryIndex - 1 + currentImages.length) % currentImages.length,
+      overlay,
+    );
 });
 
 // ── INIT ─────────────────────────────────────────────────
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   renderGrid();
 
-  // close on overlay click
-  const overlay = document.getElementById('modal-overlay');
-  overlay.addEventListener('click', e => {
+  const overlay = document.getElementById("modal-overlay");
+  overlay.addEventListener("click", (e) => {
     if (e.target === overlay) closeModal();
   });
-
-  document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+  document
+    .getElementById("modal-close-btn")
+    .addEventListener("click", closeModal);
 });

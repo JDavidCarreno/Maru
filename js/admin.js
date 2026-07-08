@@ -1,35 +1,40 @@
 /**
- * admin.js — lógica del panel de administración.
+ * admin.js — lógica del panel de administración con Supabase.
  */
 
-let editingId = null;       // null = nuevo producto, número = editar existente
-let pendingImages = [];     // URLs de imágenes para el producto actual
+let editingId = null;
+let existingImages = []; // URLs ya guardadas al editar un producto
 
 // ── INIT ─────────────────────────────────────────────────
 
-document.addEventListener('DOMContentLoaded', () => {
-  renderAdminTable();
+document.addEventListener("DOMContentLoaded", async () => {
+  await renderAdminTable();
   bindFormEvents();
 });
 
 // ── TABLE ────────────────────────────────────────────────
 
-function renderAdminTable() {
-  const tbody = document.getElementById('admin-tbody');
-  const products = getProducts();
-  tbody.innerHTML = '';
+async function renderAdminTable() {
+  const tbody = document.getElementById("admin-tbody");
+  tbody.innerHTML =
+    '<tr><td colspan="5" class="table-empty">Cargando…</td></tr>';
+
+  const products = await getProducts();
+  tbody.innerHTML = "";
 
   if (products.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="table-empty">No hay productos. Cargá el primero 👆</td></tr>`;
+    tbody.innerHTML =
+      '<tr><td colspan="5" class="table-empty">No hay productos. Cargá el primero 👆</td></tr>';
     return;
   }
 
-  products.forEach(p => {
-    const thumb = p.images && p.images.length
-      ? `<img class="admin-thumb" src="${p.images[0]}" alt="${p.name}" onerror="this.outerHTML='<span class=\\'admin-thumb-emoji\\'>${p.emoji || '🏷️'}</span>'">`
-      : `<span class="admin-thumb-emoji">${p.emoji || '🏷️'}</span>`;
+  products.forEach((p) => {
+    const images = p.images || [];
+    const thumb = images.length
+      ? `<img class="admin-thumb" src="${images[0]}" alt="${p.name}">`
+      : `<div class="admin-thumb" style="background:linear-gradient(135deg,#f8e9e0,#f2d5c8)"></div>`;
 
-    const tr = document.createElement('tr');
+    const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${thumb}</td>
       <td>
@@ -37,9 +42,9 @@ function renderAdminTable() {
         <br><span class="admin-cat-badge">${p.category}</span>
       </td>
       <td>${formatPrice(p.price)}</td>
-      <td class="admin-img-count">${p.images ? p.images.length : 0} img.</td>
+      <td class="admin-img-count">${images.length} img.</td>
       <td class="admin-actions">
-        <button class="admin-btn edit" onclick="startEdit(${p.id})">✏️ Editar</button>
+        <button class="admin-btn edit"   onclick="startEdit(${p.id})">✏️ Editar</button>
         <button class="admin-btn delete" onclick="confirmDelete(${p.id})">🗑️ Eliminar</button>
       </td>`;
     tbody.appendChild(tr);
@@ -49,174 +54,248 @@ function renderAdminTable() {
 // ── FORM ─────────────────────────────────────────────────
 
 function bindFormEvents() {
-  document.getElementById('product-form').addEventListener('submit', handleFormSubmit);
-  document.getElementById('btn-cancel').addEventListener('click', resetForm);
-  document.getElementById('btn-add-image').addEventListener('click', addImageField);
-  document.getElementById('btn-new').addEventListener('click', () => {
+  document
+    .getElementById("product-form")
+    .addEventListener("submit", handleFormSubmit);
+  document.getElementById("btn-cancel").addEventListener("click", resetForm);
+  document
+    .getElementById("btn-add-image")
+    .addEventListener("click", () => addImageRow());
+  document.getElementById("btn-new").addEventListener("click", () => {
     resetForm();
-    document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
+    document
+      .getElementById("form-section")
+      .scrollIntoView({ behavior: "smooth" });
   });
 }
 
-function handleFormSubmit(e) {
+async function handleFormSubmit(e) {
   e.preventDefault();
   const form = e.target;
 
-  const productData = {
-    name:        form.name_field.value.trim(),
-    category:    form.category_field.value.trim(),
-    price:       parseFloat(form.price_field.value),
-    description: form.description_field.value.trim(),
-    emoji:       form.emoji_field.value.trim() || '🏷️',
-    images:      collectImages()
-  };
+  const name = form.name_field.value.trim();
+  const category = form.category_field.value.trim();
+  const price = parseFloat(form.price_field.value);
+  const description = form.description_field.value.trim();
 
-  if (!productData.name || !productData.category || isNaN(productData.price)) {
-    showToast('Completá los campos obligatorios.', 'error');
+  if (!name || !category || isNaN(price)) {
+    showToast("Completá los campos obligatorios.", "error");
     return;
   }
 
+  setBusy(true);
+
+  // subir imágenes nuevas y combinarlas con las existentes
+  const uploadedUrls = await uploadPendingImages();
+  const allImages = [...existingImages, ...uploadedUrls];
+
+  const productData = { name, category, price, description, images: allImages };
+
+  let ok;
   if (editingId !== null) {
-    updateProduct(editingId, productData);
-    showToast('✅ Producto actualizado.');
+    ok = await updateProduct(editingId, productData);
+    showToast(
+      ok ? "✅ Producto actualizado." : "Error al actualizar.",
+      ok ? "success" : "error",
+    );
   } else {
-    addProduct(productData);
-    showToast('✅ Producto agregado.');
+    ok = await addProduct(productData);
+    showToast(
+      ok ? "✅ Producto agregado." : "Error al agregar.",
+      ok ? "success" : "error",
+    );
   }
 
-  resetForm();
-  renderAdminTable();
+  setBusy(false);
+  if (ok) {
+    resetForm();
+    await renderAdminTable();
+  }
 }
 
-function startEdit(id) {
-  const products = getProducts();
-  const p = products.find(prod => prod.id === id);
+async function startEdit(id) {
+  const products = await getProducts();
+  const p = products.find((prod) => prod.id === id);
   if (!p) return;
 
   editingId = id;
-  const form = document.getElementById('product-form');
-  form.name_field.value        = p.name;
-  form.category_field.value    = p.category;
-  form.price_field.value       = p.price;
-  form.description_field.value = p.description;
-  form.emoji_field.value       = p.emoji || '';
+  existingImages = p.images || [];
 
-  // render image fields
-  const container = document.getElementById('images-container');
-  container.innerHTML = '';
-  (p.images || []).forEach(url => addImageField(url));
+  const form = document.getElementById("product-form");
+  form.name_field.value = p.name;
+  form.category_field.value = p.category;
+  form.price_field.value = p.price;
+  form.description_field.value = p.description || "";
 
-  document.getElementById('form-title').textContent = '✏️ Editando producto';
-  document.getElementById('btn-submit').textContent = 'Guardar cambios';
-  document.getElementById('btn-cancel').style.display = 'inline-flex';
-  document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
+  // mostrar imágenes existentes
+  const container = document.getElementById("images-container");
+  container.innerHTML = "";
+  existingImages.forEach((url, i) => addExistingImageRow(url, i));
+
+  document.getElementById("form-title").textContent = "✏️ Editando producto";
+  document.getElementById("btn-submit").textContent = "Guardar cambios";
+  document.getElementById("btn-cancel").style.display = "inline-flex";
+  document
+    .getElementById("form-section")
+    .scrollIntoView({ behavior: "smooth" });
 }
 
 function resetForm() {
   editingId = null;
-  document.getElementById('product-form').reset();
-  document.getElementById('images-container').innerHTML = '';
-  document.getElementById('form-title').textContent = '➕ Nuevo producto';
-  document.getElementById('btn-submit').textContent = 'Agregar producto';
-  document.getElementById('btn-cancel').style.display = 'none';
+  existingImages = [];
+  document.getElementById("product-form").reset();
+  document.getElementById("images-container").innerHTML = "";
+  document.getElementById("form-title").textContent = "➕ Nuevo producto";
+  document.getElementById("btn-submit").textContent = "Agregar producto";
+  document.getElementById("btn-cancel").style.display = "none";
 }
 
-// ── IMAGE FIELDS ─────────────────────────────────────────
+// ── IMAGE ROWS ───────────────────────────────────────────
 
-function addImageField(url = '') {
-  const container = document.getElementById('images-container');
-  const count = container.querySelectorAll('.image-field-row').length;
-
-  const row = document.createElement('div');
-  row.className = 'image-field-row';
+// Fila para imagen ya guardada (muestra miniatura + botón de eliminar)
+function addExistingImageRow(url, index) {
+  const container = document.getElementById("images-container");
+  const row = document.createElement("div");
+  row.className = "image-field-row existing";
+  row.dataset.url = url;
   row.innerHTML = `
-    <span class="img-index">${count + 1}</span>
-    <input type="url" class="img-url-input" placeholder="https://ejemplo.com/imagen.jpg" value="${url}">
-    <button type="button" class="img-preview-btn" onclick="previewImage(this)" title="Vista previa">👁️</button>
-    <button type="button" class="img-remove-btn" onclick="removeImageField(this)" title="Eliminar">✕</button>`;
+    <img src="${url}" class="img-preview-thumb" alt="Imagen ${index + 1}">
+    <span class="img-existing-label">Imagen ${index + 1}</span>
+    <button type="button" class="img-remove-btn" onclick="removeExistingImage(this)">✕ Eliminar</button>`;
   container.appendChild(row);
-  row.querySelector('input').focus();
 }
 
-function removeImageField(btn) {
-  btn.closest('.image-field-row').remove();
-  // renumber
-  document.querySelectorAll('.img-index').forEach((el, i) => el.textContent = i + 1);
+function removeExistingImage(btn) {
+  const row = btn.closest(".image-field-row.existing");
+  const url = row.dataset.url;
+  existingImages = existingImages.filter((u) => u !== url);
+  row.remove();
 }
 
-function previewImage(btn) {
-  const input = btn.previousElementSibling;
-  const url = input.value.trim();
-  if (!url) { showToast('Ingresá una URL primero.', 'error'); return; }
+// Fila para subir imagen nueva desde el dispositivo
+function addImageRow() {
+  const container = document.getElementById("images-container");
+  const row = document.createElement("div");
+  row.className = "image-field-row new";
+  row.innerHTML = `
+    <input type="file" class="img-file-input" accept="image/*" style="display:none">
+    <div class="img-pick-area">
+      <img class="img-preview-thumb" style="display:none">
+      <button type="button" class="img-pick-btn">📁 Elegir imagen</button>
+      <span class="img-status">Sin archivo seleccionado</span>
+    </div>
+    <button type="button" class="img-remove-btn" onclick="this.closest('.image-field-row').remove()">✕</button>`;
+  container.appendChild(row);
 
-  const existing = btn.closest('.image-field-row').querySelector('.img-preview-thumb');
-  if (existing) { existing.remove(); return; }
+  const input = row.querySelector(".img-file-input");
+  const pickBtn = row.querySelector(".img-pick-btn");
+  const status = row.querySelector(".img-status");
+  const preview = row.querySelector(".img-preview-thumb");
 
-  const img = document.createElement('img');
-  img.className = 'img-preview-thumb';
-  img.src = url;
-  img.alt = 'Vista previa';
-  img.onerror = () => showToast('No se pudo cargar la imagen.', 'error');
-  btn.closest('.image-field-row').appendChild(img);
+  // el botón visible dispara el input oculto
+  pickBtn.addEventListener("click", () => input.click());
+
+  input.addEventListener("change", function () {
+    const file = this.files[0];
+    if (!file) return;
+
+    status.textContent = `📎 ${file.name}`;
+    pickBtn.textContent = "🔄 Cambiar";
+
+    // miniatura local antes de subir
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      preview.src = ev.target.result;
+      preview.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
-function collectImages() {
-  return Array.from(document.querySelectorAll('.img-url-input'))
-    .map(i => i.value.trim())
-    .filter(Boolean);
+// Recorre todas las filas "new", sube cada archivo y devuelve las URLs
+async function uploadPendingImages() {
+  const rows = document.querySelectorAll(".image-field-row.new");
+  const urls = [];
+
+  for (const row of rows) {
+    const input = row.querySelector('input[type="file"]');
+    const status = row.querySelector(".img-status");
+    if (!input || !input.files[0]) continue;
+
+    status.textContent = "⏫ Subiendo…";
+    const url = await uploadImage(input.files[0]);
+    if (url) {
+      urls.push(url);
+      status.textContent = "✅";
+    } else {
+      status.textContent = "❌ Error";
+    }
+  }
+  return urls;
 }
 
 // ── DELETE ────────────────────────────────────────────────
 
 function confirmDelete(id) {
-  const products = getProducts();
-  const p = products.find(prod => prod.id === id);
-  if (!p) return;
-
-  showConfirm(`¿Eliminár "${p.name}"?`, () => {
-    deleteProduct(id);
-    renderAdminTable();
-    showToast('🗑️ Producto eliminado.');
-    if (editingId === id) resetForm();
+  showConfirm("¿Eliminar este producto?", async () => {
+    const ok = await deleteProduct(id);
+    if (ok) {
+      showToast("🗑️ Producto eliminado.");
+      if (editingId === id) resetForm();
+      await renderAdminTable();
+    } else {
+      showToast("Error al eliminar.", "error");
+    }
   });
+}
+
+// ── BUSY STATE ───────────────────────────────────────────
+
+function setBusy(busy) {
+  const btn = document.getElementById("btn-submit");
+  btn.disabled = busy;
+  btn.textContent = busy
+    ? "Guardando…"
+    : editingId
+      ? "Guardar cambios"
+      : "Agregar producto";
 }
 
 // ── TOAST ────────────────────────────────────────────────
 
-function showToast(msg, type = 'success') {
-  const existing = document.querySelector('.toast');
-  if (existing) existing.remove();
-
-  const toast = document.createElement('div');
+function showToast(msg, type = "success") {
+  document.querySelector(".toast")?.remove();
+  const toast = document.createElement("div");
   toast.className = `toast toast-${type}`;
   toast.textContent = msg;
   document.body.appendChild(toast);
-
-  requestAnimationFrame(() => toast.classList.add('toast-visible'));
+  requestAnimationFrame(() => toast.classList.add("toast-visible"));
   setTimeout(() => {
-    toast.classList.remove('toast-visible');
+    toast.classList.remove("toast-visible");
     setTimeout(() => toast.remove(), 300);
   }, 2800);
 }
 
-// ── CONFIRM DIALOG ───────────────────────────────────────
+// ── CONFIRM ───────────────────────────────────────────────
 
 function showConfirm(message, onConfirm) {
-  const overlay = document.getElementById('confirm-overlay');
-  document.getElementById('confirm-message').textContent = message;
-  overlay.classList.add('open');
+  const overlay = document.getElementById("confirm-overlay");
+  document.getElementById("confirm-message").textContent = message;
+  overlay.classList.add("open");
 
-  const confirmBtn = document.getElementById('confirm-yes');
-  const cancelBtn  = document.getElementById('confirm-no');
+  const yes = document.getElementById("confirm-yes");
+  const no = document.getElementById("confirm-no");
 
   function cleanup() {
-    overlay.classList.remove('open');
-    confirmBtn.removeEventListener('click', onYes);
-    cancelBtn.removeEventListener('click', cleanup);
+    overlay.classList.remove("open");
+    yes.removeEventListener("click", onYes);
+    no.removeEventListener("click", cleanup);
+  }
+  function onYes() {
+    cleanup();
+    onConfirm();
   }
 
-  function onYes() { cleanup(); onConfirm(); }
-
-  confirmBtn.addEventListener('click', onYes);
-  cancelBtn.addEventListener('click', cleanup);
+  yes.addEventListener("click", onYes);
+  no.addEventListener("click", cleanup);
 }

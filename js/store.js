@@ -1,116 +1,92 @@
 /**
- * store.js — fuente de verdad compartida para productos.
- * Usa localStorage para persistir los datos entre páginas.
+ * store.js — todas las operaciones de datos van contra Supabase.
  */
 
-const STORAGE_KEY = "maru_products";
+const TABLE = "products";
+const BUCKET = "product-images";
 
-// Productos de ejemplo para la primera carga
-const DEFAULT_PRODUCTS = [
-  {
-    id: 1,
-    name: "Set de velas aromáticas",
-    category: "Iluminación",
-    price: 12000,
-    description:
-      "Tres velas de soja con fragancias de lavanda, vainilla y sándalo. Perfectas para crear ambientes cálidos y acogedores en cualquier espacio del hogar.",
-    emoji: "🕯️",
-    images: [], // se llenará con URLs cuando el admin las cargue
-  },
-  {
-    id: 2,
-    name: "Maceta cerámica artesanal",
-    category: "Plantas",
-    price: 8500,
-    description:
-      "Maceta pintada a mano en tonos terrosos. Ideal para suculentas y plantas de interior. Cada pieza es única y puede tener variaciones mínimas.",
-    emoji: "🪴",
-    images: [],
-  },
-  {
-    id: 3,
-    name: "Cuadro boho minimalista",
-    category: "Arte",
-    price: 18000,
-    description:
-      "Impresión artística en lienzo, estilo boho con tonos neutros. Disponible en varios tamaños. Transforma cualquier pared en un punto focal del ambiente.",
-    emoji: "🖼️",
-    images: [],
-  },
-  {
-    id: 4,
-    name: "Cesta tejida de mimbre",
-    category: "Textiles",
-    price: 14500,
-    description:
-      "Cesta multifuncional tejida a mano con mimbre natural. Organiza con estilo o úsala como elemento decorativo en sala, dormitorio o baño.",
-    emoji: "🧺",
-    images: [],
-  },
-  {
-    id: 5,
-    name: "Espejo redondo con marco rattan",
-    category: "Espejos",
-    price: 22000,
-    description:
-      "Espejo decorativo de 60 cm con borde tejido en rattan natural. Un toque orgánico y elegante. Apto para colgar en pared o apoyar en piso.",
-    emoji: "🪞",
-    images: [],
-  },
-  {
-    id: 6,
-    name: "Flores secas en jarrón",
-    category: "Flores",
-    price: 16000,
-    description:
-      "Arreglo de pampas y flores secas en jarrón de barro pintado a mano. Sin mantenimiento, belleza duradera. Ideal para mesa o repisa.",
-    emoji: "💐",
-    images: [],
-  },
-];
+// ── PRODUCTOS ────────────────────────────────────────────
 
-// ── API pública ──────────────────────────────────────────
+async function getProducts() {
+  const { data, error } = await db
+    .from(TABLE)
+    .select("*")
+    .order("created_at", { ascending: false });
 
-function getProducts() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (e) {
-    /* ignore */
+  if (error) {
+    console.error("getProducts:", error.message);
+    return [];
   }
-  // primera visita: carga los de ejemplo y los guarda
-  saveProducts(DEFAULT_PRODUCTS);
-  return DEFAULT_PRODUCTS;
+  return data;
 }
 
-function saveProducts(products) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+async function addProduct(product) {
+  const { data, error } = await db
+    .from(TABLE)
+    .insert([product])
+    .select()
+    .single();
+
+  if (error) {
+    console.error("addProduct:", error.message);
+    return null;
+  }
+  return data;
 }
 
-function addProduct(product) {
-  const products = getProducts();
-  const newId = products.length
-    ? Math.max(...products.map((p) => p.id)) + 1
-    : 1;
-  const newProduct = { ...product, id: newId };
-  products.push(newProduct);
-  saveProducts(products);
-  return newProduct;
+async function updateProduct(id, product) {
+  const { data, error } = await db
+    .from(TABLE)
+    .update(product)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("updateProduct:", error.message);
+    return null;
+  }
+  return data;
 }
 
-function updateProduct(id, data) {
-  const products = getProducts();
-  const idx = products.findIndex((p) => p.id === id);
-  if (idx === -1) return null;
-  products[idx] = { ...products[idx], ...data };
-  saveProducts(products);
-  return products[idx];
+async function deleteProduct(id) {
+  const { error } = await db.from(TABLE).delete().eq("id", id);
+
+  if (error) {
+    console.error("deleteProduct:", error.message);
+    return false;
+  }
+  return true;
 }
 
-function deleteProduct(id) {
-  const products = getProducts().filter((p) => p.id !== id);
-  saveProducts(products);
+// ── IMÁGENES ─────────────────────────────────────────────
+
+async function uploadImage(file) {
+  const ext = file.name.split(".").pop();
+  const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const path = `public/${filename}`;
+
+  const { error } = await db.storage
+    .from(BUCKET)
+    .upload(path, file, { cacheControl: "3600", upsert: false });
+
+  if (error) {
+    console.error("uploadImage:", error.message);
+    return null;
+  }
+
+  const { data } = db.storage.from(BUCKET).getPublicUrl(path);
+  return data.publicUrl;
 }
+
+async function deleteImage(url) {
+  // extrae el path desde la URL pública
+  const path = url.split(`${BUCKET}/`)[1];
+  if (!path) return;
+  await db.storage.from(BUCKET).remove([path]);
+}
+
+// ── HELPERS ──────────────────────────────────────────────
 
 function formatPrice(amount) {
   return "$" + Number(amount).toLocaleString("es-AR");
