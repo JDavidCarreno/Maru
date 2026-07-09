@@ -135,7 +135,7 @@ function bindGalleryEvents(overlay) {
 
   overlay.querySelector("#gallery-thumbs").addEventListener("click", (e) => {
     const thumb = e.target.closest("[data-index]");
-    if (thumb) goToSlide(parseInt(thumb.dataset.index), overlay);
+    if (thumb) openFullscreen(parseInt(thumb.dataset.index));
   });
 
   const prevBtn = overlay.querySelector(".gallery-arrow.prev").cloneNode(true);
@@ -167,10 +167,50 @@ function goToSlide(index, overlay) {
     );
 }
 
+// ── FULLSCREEN OVERLAY ───────────────────────────────────
+
+function openFullscreen(index) {
+  currentGalleryIndex = index;
+  renderFullscreenImage(index);
+  document.getElementById("fs-overlay").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeFullscreen() {
+  document.getElementById("fs-overlay").classList.remove("open");
+  const modalOverlay = document.getElementById("modal-overlay");
+  if (modalOverlay.classList.contains("open")) {
+    goToSlide(currentGalleryIndex, modalOverlay);
+  }
+  if (!modalOverlay.classList.contains("open")) {
+    document.body.style.overflow = "";
+  }
+}
+
+function renderFullscreenImage(index) {
+  const src = currentImages[index];
+  document.getElementById("fs-image").src = src;
+  const counter = document.getElementById("fs-counter");
+  counter.textContent = `${index + 1} / ${currentImages.length}`;
+}
+
 // ── TECLADO ──────────────────────────────────────────────
 
 document.addEventListener("keydown", (e) => {
+  const fs = document.getElementById("fs-overlay");
   const overlay = document.getElementById("modal-overlay");
+
+  if (fs.classList.contains("open")) {
+    if (e.key === "Escape") { closeFullscreen(); return; }
+    if (e.key === "ArrowRight")
+      openFullscreen((currentGalleryIndex + 1) % currentImages.length);
+    if (e.key === "ArrowLeft")
+      openFullscreen(
+        (currentGalleryIndex - 1 + currentImages.length) % currentImages.length,
+      );
+    return;
+  }
+
   if (!overlay.classList.contains("open")) return;
   if (e.key === "Escape") closeModal();
   if (e.key === "ArrowRight")
@@ -191,7 +231,24 @@ document.addEventListener("DOMContentLoaded", () => {
   overlay.addEventListener("click", (e) => {
     if (e.target === overlay) closeModal();
   });
+  overlay.addEventListener("click", (e) => {
+    if (e.target.classList.contains("gallery-main") && currentImages.length) {
+      openFullscreen(currentGalleryIndex);
+    }
+  });
   document
     .getElementById("modal-close-btn")
     .addEventListener("click", closeModal);
+
+  const fs = document.getElementById("fs-overlay");
+  document.getElementById("fs-close-btn").addEventListener("click", closeFullscreen);
+  fs.addEventListener("click", (e) => {
+    if (e.target === fs) closeFullscreen();
+  });
+  fs.querySelector(".fs-arrow.prev").addEventListener("click", () => {
+    openFullscreen((currentGalleryIndex - 1 + currentImages.length) % currentImages.length);
+  });
+  fs.querySelector(".fs-arrow.next").addEventListener("click", () => {
+    openFullscreen((currentGalleryIndex + 1) % currentImages.length);
+  });
 });
