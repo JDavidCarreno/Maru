@@ -164,6 +164,61 @@
                 color: var(--white);
             }
 
+            .admin-header-actions {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+
+            .theme-selector {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .theme-selector label {
+                font-size: 0.82rem;
+                font-weight: 600;
+                color: var(--brown);
+                white-space: nowrap;
+            }
+
+            .theme-selector select {
+                padding: 0.4rem 0.7rem;
+                border: 1.5px solid var(--blush);
+                border-radius: 10px;
+                font-size: 0.85rem;
+                font-family: var(--font);
+                color: var(--text);
+                background: var(--cream);
+                cursor: pointer;
+                outline: none;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+
+            .theme-selector select:focus {
+                border-color: var(--rose);
+                box-shadow: 0 0 0 3px rgba(201, 123, 90, 0.15);
+            }
+
+            .btn-theme-save {
+                background: var(--rose);
+                color: var(--white);
+                border: none;
+                padding: 0.4rem 1rem;
+                border-radius: 100px;
+                font-size: 0.78rem;
+                font-weight: 600;
+                cursor: pointer;
+                white-space: nowrap;
+                transition: background 0.2s;
+            }
+
+            .btn-theme-save:hover {
+                background: var(--brown);
+            }
+
             .table-empty {
                 text-align: center;
                 color: var(--muted);
@@ -547,6 +602,89 @@
                     flex-direction: column;
                     align-items: flex-start;
                 }
+
+                .admin-header-actions {
+                    flex-direction: column;
+                    align-items: stretch;
+                    width: 100%;
+                }
+
+                .theme-selector {
+                    justify-content: space-between;
+                }
+
+                .theme-selector select {
+                    flex: 1;
+                    min-width: 0;
+                }
+
+                .admin-table-wrap {
+                    overflow: visible;
+                }
+
+                .admin-table-wrap table,
+                .admin-table-wrap thead,
+                .admin-table-wrap tbody,
+                .admin-table-wrap tr,
+                .admin-table-wrap td {
+                    display: block;
+                }
+
+                .admin-table-wrap thead {
+                    display: none;
+                }
+
+                .admin-table-wrap tbody tr {
+                    background: var(--white);
+                    border-radius: var(--radius);
+                    box-shadow: var(--shadow);
+                    padding: 1rem 1.2rem;
+                    margin-bottom: 1rem;
+                    border-bottom: none;
+                }
+
+                .admin-table-wrap tbody tr:hover {
+                    background: var(--white);
+                }
+
+                .admin-table-wrap td {
+                    padding: 0.45rem 0;
+                    border: none;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.6rem;
+                    font-size: 0.88rem;
+                }
+
+                .admin-table-wrap td::before {
+                    content: attr(data-label);
+                    font-weight: 700;
+                    color: var(--muted);
+                    font-size: 0.75rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    min-width: 90px;
+                    flex-shrink: 0;
+                }
+
+                .admin-table-wrap td:last-child {
+                    padding-top: 0.8rem;
+                    border-top: 1px solid var(--blush);
+                    margin-top: 0.4rem;
+                }
+
+                .admin-table-wrap td:last-child::before {
+                    display: none;
+                }
+
+                .admin-thumb {
+                    width: 44px;
+                    height: 33px;
+                }
+
+                .admin-actions {
+                    gap: 0.75rem;
+                }
             }
 
             /* ── Login Screen ── */
@@ -704,7 +842,18 @@
                         automáticamente.
                     </p>
                 </div>
-                <button class="btn-new" id="btn-new">+ Nuevo producto</button>
+                <div class="admin-header-actions">
+                    <div class="theme-selector">
+                        <label for="theme-select">Tema:</label>
+                        <select id="theme-select">
+                            <option value="default">Default</option>
+                            <option value="navidad">Navidad</option>
+                            <option value="halloween">Halloween</option>
+                        </select>
+                        <button class="btn-theme-save" id="btn-theme-save">Guardar tema</button>
+                    </div>
+                    <button class="btn-new" id="btn-new">+ Nuevo producto</button>
+                </div>
             </div>
 
             <!-- Tabla de productos -->

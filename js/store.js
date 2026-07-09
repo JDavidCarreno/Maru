@@ -106,6 +106,34 @@ async function deleteImage(url) {
   await db.storage.from(BUCKET).remove([path]);
 }
 
+// ── SETTINGS ─────────────────────────────────────────────
+
+async function getSetting(key) {
+  const { data, error } = await db
+    .from("settings")
+    .select("value")
+    .eq("key", key)
+    .single();
+
+  if (error) {
+    console.error("getSetting:", error.message);
+    return null;
+  }
+  return data?.value ?? null;
+}
+
+async function setSetting(key, value) {
+  const { error } = await db
+    .from("settings")
+    .upsert({ key, value }, { onConflict: "key" });
+
+  if (error) {
+    console.error("setSetting:", error.message);
+    return false;
+  }
+  return true;
+}
+
 // ── HELPERS ──────────────────────────────────────────────
 
 function formatPrice(amount) {

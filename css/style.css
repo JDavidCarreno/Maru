@@ -695,6 +695,70 @@ footer strong {
     letter-spacing: 0.05em;
 }
 
+/* ── THEMES ──────────────────────────────────────────── */
+
+/* Navidad */
+[data-theme="navidad"] {
+  --blush: #e8b4b4;
+  --rose: #c41e3a;
+  --brown: #1a472a;
+  --muted: #7a8a7a;
+}
+
+[data-theme="navidad"] .hero {
+  background: linear-gradient(160deg, var(--cream) 0%, #f5d5d5 50%, #d4edda 100%);
+}
+
+[data-theme="navidad"] .hero::after {
+  content: "❄️";
+  position: absolute;
+  bottom: 16px;
+  right: 24px;
+  font-size: 2.2rem;
+  opacity: 0.25;
+  pointer-events: none;
+  animation: snowfall 3s ease-in-out infinite;
+}
+
+@keyframes snowfall {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.25; }
+  50% { transform: translateY(-8px) rotate(180deg); opacity: 0.5; }
+}
+
+[data-theme="navidad"] .hero-badge {
+  background: #c41e3a;
+  color: #fff;
+}
+
+/* Halloween */
+[data-theme="halloween"] {
+  --cream: #1a1a2e;
+  --blush: #ff8c42;
+  --rose: #9b59b6;
+  --brown: #2d1b2e;
+  --text: #e8d5b7;
+  --muted: #9b8b7b;
+}
+
+[data-theme="halloween"] .hero {
+  background: linear-gradient(160deg, #1a1a2e 0%, #2d1b2e 50%, #0d0d1a 100%);
+}
+
+[data-theme="halloween"] .hero::after {
+  content: "🕸️";
+  position: absolute;
+  bottom: 16px;
+  right: 24px;
+  font-size: 2.2rem;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+[data-theme="halloween"] .hero-badge {
+  background: #9b59b6;
+  color: #fff;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 640px) {
     nav ul {

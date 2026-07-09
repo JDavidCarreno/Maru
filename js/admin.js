@@ -9,6 +9,10 @@ let existingImages = []; // URLs ya guardadas al editar un producto
 
 async function initAdmin() {
   document.getElementById("login-overlay").style.display = "none";
+
+  await loadTheme();
+  bindThemeEvents();
+
   await renderAdminTable();
   bindFormEvents();
 }
@@ -60,6 +64,40 @@ async function handleLogin(e) {
   }
 }
 
+// ── THEME ────────────────────────────────────────────────
+
+async function loadTheme() {
+  try {
+    const theme = await getSetting("theme");
+    const sel = document.getElementById("theme-select");
+    if (theme) {
+      sel.value = theme;
+      if (theme !== "default") {
+        document.documentElement.setAttribute("data-theme", theme);
+      }
+    }
+  } catch (err) {
+    console.error("loadTheme:", err);
+  }
+}
+
+function bindThemeEvents() {
+  document.getElementById("theme-select").addEventListener("change", (e) => {
+    const theme = e.target.value;
+    if (theme !== "default") {
+      document.documentElement.setAttribute("data-theme", theme);
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+  });
+
+  document.getElementById("btn-theme-save").addEventListener("click", async () => {
+    const theme = document.getElementById("theme-select").value;
+    const ok = await setSetting("theme", theme);
+    showToast(ok ? "✅ Tema guardado." : "❌ Error al guardar tema.", ok ? "success" : "error");
+  });
+}
+
 // ── TABLE ────────────────────────────────────────────────
 
 async function renderAdminTable() {
@@ -84,13 +122,13 @@ async function renderAdminTable() {
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${thumb}</td>
-      <td>
+      <td data-label="Imagen">${thumb}</td>
+      <td data-label="Nombre / Categoría">
         <strong>${p.name}</strong>
         <br><span class="admin-cat-badge">${p.category}</span>
       </td>
-      <td>${formatPrice(p.price)}</td>
-      <td class="admin-img-count">${images.length} img.</td>
+      <td data-label="Precio">${formatPrice(p.price)}</td>
+      <td data-label="Imágenes" class="admin-img-count">${images.length} img.</td>
       <td class="admin-actions">
         <button class="admin-btn edit"   onclick="startEdit(${p.id})">✏️ Editar</button>
         <button class="admin-btn delete" onclick="confirmDelete(${p.id})">🗑️ Eliminar</button>

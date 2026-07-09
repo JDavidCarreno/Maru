@@ -224,7 +224,16 @@ document.addEventListener("keydown", (e) => {
 
 // ── INIT ─────────────────────────────────────────────────
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const theme = await getSetting("theme");
+    if (theme && theme !== "default") {
+      document.documentElement.setAttribute("data-theme", theme);
+    }
+  } catch (err) {
+    console.error("Error al cargar tema:", err);
+  }
+
   renderGrid();
 
   const overlay = document.getElementById("modal-overlay");
