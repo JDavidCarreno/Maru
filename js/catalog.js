@@ -4,6 +4,8 @@
 
 let currentGalleryIndex = 0;
 let currentImages = [];
+let currentProducts = [];
+let currentProductIndex = -1;
 
 // ── RENDER GRID ──────────────────────────────────────────
 
@@ -13,6 +15,7 @@ async function renderGrid() {
     '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:3rem">Cargando productos…</p>';
 
   const products = await getProducts();
+  currentProducts = products;
   grid.innerHTML = "";
 
   if (products.length === 0) {
@@ -64,6 +67,7 @@ function truncate(str, max) {
 // ── MODAL ────────────────────────────────────────────────
 
 function openModal(product) {
+  currentProductIndex = currentProducts.findIndex(p => p.id === product.id);
   currentImages = product.images && product.images.length ? product.images : [];
   currentGalleryIndex = 0;
 
@@ -167,6 +171,22 @@ function goToSlide(index, overlay) {
     );
 }
 
+// ── PRODUCT NAVIGATION ───────────────────────────────────
+
+function prevProduct() {
+  if (currentProducts.length < 2) return;
+  const i = (currentProductIndex - 1 + currentProducts.length) % currentProducts.length;
+  closeModal();
+  openModal(currentProducts[i]);
+}
+
+function nextProduct() {
+  if (currentProducts.length < 2) return;
+  const i = (currentProductIndex + 1) % currentProducts.length;
+  closeModal();
+  openModal(currentProducts[i]);
+}
+
 // ── FULLSCREEN OVERLAY ───────────────────────────────────
 
 function openFullscreen(index) {
@@ -248,6 +268,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   document
     .getElementById("modal-close-btn")
     .addEventListener("click", closeModal);
+
+  overlay.querySelector(".modal-product-arrow.prev").addEventListener("click", prevProduct);
+  overlay.querySelector(".modal-product-arrow.next").addEventListener("click", nextProduct);
 
   const fs = document.getElementById("fs-overlay");
   document.getElementById("fs-close-btn").addEventListener("click", closeFullscreen);
