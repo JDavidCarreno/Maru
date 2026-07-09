@@ -637,7 +637,15 @@ footer strong {
 
 @media (max-width: 640px) {
     .modal-product-arrow {
-        display: none;
+        width: 34px;
+        height: 34px;
+        font-size: 1.1rem;
+    }
+    .modal-product-arrow.prev {
+        left: 6px;
+    }
+    .modal-product-arrow.next {
+        right: 6px;
     }
 }
 

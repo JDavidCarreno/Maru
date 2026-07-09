@@ -272,6 +272,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   overlay.querySelector(".modal-product-arrow.prev").addEventListener("click", prevProduct);
   overlay.querySelector(".modal-product-arrow.next").addEventListener("click", nextProduct);
 
+  let touchStartX = 0;
+  let touchStartY = 0;
+  overlay.addEventListener("touchstart", (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+  }, { passive: true });
+  overlay.addEventListener("touchend", (e) => {
+    const dx = e.changedTouches[0].screenX - touchStartX;
+    const dy = e.changedTouches[0].screenY - touchStartY;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      if (dx < 0) nextProduct();
+      else prevProduct();
+    }
+  }, { passive: true });
+
   const fs = document.getElementById("fs-overlay");
   document.getElementById("fs-close-btn").addEventListener("click", closeFullscreen);
   fs.addEventListener("click", (e) => {
