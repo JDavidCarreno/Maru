@@ -6,58 +6,78 @@ let currentGalleryIndex = 0;
 let currentImages = [];
 let currentProducts = [];
 let currentProductIndex = -1;
+let currentPage = 0;
+let isLoading = false;
+let hasMore = true;
+const PAGE_SIZE = 12;
 
-// ── RENDER GRID ──────────────────────────────────────────
+// ── RENDER (INFINITE SCROLL) ────────────────────────────
 
-async function renderGrid() {
+function createCard(product) {
+  const images = product.images || [];
+  const coverHTML = images.length
+    ? `<img class="card-img" src="${images[0]}" alt="${product.name}" loading="lazy">`
+    : `<div class="card-img-placeholder">🏷️</div>`;
+
+  const card = document.createElement("article");
+  card.className = "card";
+  card.setAttribute("role", "button");
+  card.setAttribute("tabindex", "0");
+  card.setAttribute("aria-label", `Ver ${product.name}`);
+
+  card.innerHTML = `
+    ${coverHTML}
+    <div class="card-body">
+      <span class="card-tag">${product.category}</span>
+      <h3 class="card-title">${product.name}</h3>
+      <p class="card-desc">${truncate(product.description || "", 90)}</p>
+      <div class="card-footer">
+        <span class="card-price">${formatPrice(product.price)}</span>
+        <span class="card-cta">Ver más</span>
+      </div>
+    </div>`;
+
+  card.addEventListener("click", () => openModal(product));
+  card.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") openModal(product);
+  });
+
+  return card;
+}
+
+async function loadNextPage() {
+  if (isLoading || !hasMore) return;
+  isLoading = true;
+
+  const sentinel = document.getElementById("sentinel");
+  sentinel.textContent = "Cargando…";
+
+  currentPage++;
+  const products = await getProductsPage(currentPage, PAGE_SIZE);
+
+  if (products.length < PAGE_SIZE) hasMore = false;
+
   const grid = document.getElementById("product-grid");
-  grid.innerHTML =
-    '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:3rem">Cargando productos…</p>';
 
-  const products = await getProducts();
-  currentProducts = products;
-  grid.innerHTML = "";
-
-  if (products.length === 0) {
+  if (currentPage === 1 && products.length === 0) {
     grid.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">🛍️</div>
         <p>Todavía no hay productos. <a href="admin.html">Ir al panel admin →</a></p>
       </div>`;
+    sentinel.style.display = "none";
+    isLoading = false;
     return;
   }
 
-  products.forEach((product) => {
-    const images = product.images || [];
-    const coverHTML = images.length
-      ? `<img class="card-img" src="${images[0]}" alt="${product.name}" loading="lazy">`
-      : `<div class="card-img-placeholder">🏷️</div>`;
+  currentProducts.push(...products);
 
-    const card = document.createElement("article");
-    card.className = "card";
-    card.setAttribute("role", "button");
-    card.setAttribute("tabindex", "0");
-    card.setAttribute("aria-label", `Ver ${product.name}`);
+  if (currentPage === 1) grid.innerHTML = "";
 
-    card.innerHTML = `
-      ${coverHTML}
-      <div class="card-body">
-        <span class="card-tag">${product.category}</span>
-        <h3 class="card-title">${product.name}</h3>
-        <p class="card-desc">${truncate(product.description || "", 90)}</p>
-        <div class="card-footer">
-          <span class="card-price">${formatPrice(product.price)}</span>
-          <span class="card-cta">Ver más</span>
-        </div>
-      </div>`;
+  products.forEach((product) => grid.appendChild(createCard(product)));
 
-    card.addEventListener("click", () => openModal(product));
-    card.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") openModal(product);
-    });
-
-    grid.appendChild(card);
-  });
+  sentinel.textContent = hasMore ? "" : "— Todos los productos cargados —";
+  isLoading = false;
 }
 
 function truncate(str, max) {
@@ -174,17 +194,15 @@ function goToSlide(index, overlay) {
 // ── PRODUCT NAVIGATION ───────────────────────────────────
 
 function prevProduct() {
-  if (currentProducts.length < 2) return;
-  const i = (currentProductIndex - 1 + currentProducts.length) % currentProducts.length;
+  if (currentProducts.length < 2 || currentProductIndex < 1) return;
   closeModal();
-  openModal(currentProducts[i]);
+  openModal(currentProducts[currentProductIndex - 1]);
 }
 
 function nextProduct() {
-  if (currentProducts.length < 2) return;
-  const i = (currentProductIndex + 1) % currentProducts.length;
+  if (currentProducts.length < 2 || currentProductIndex >= currentProducts.length - 1) return;
   closeModal();
-  openModal(currentProducts[i]);
+  openModal(currentProducts[currentProductIndex + 1]);
 }
 
 // ── FULLSCREEN OVERLAY ───────────────────────────────────
@@ -254,7 +272,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("Error al cargar tema:", err);
   }
 
-  renderGrid();
+  document.getElementById("product-grid").innerHTML =
+    '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:3rem">Cargando productos…</p>';
+  loadNextPage();
 
   const overlay = document.getElementById("modal-overlay");
   overlay.addEventListener("click", (e) => {
@@ -316,4 +336,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
   }, { passive: true });
+
+  const sentinel = document.getElementById("sentinel");
+  const io = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) loadNextPage();
+  }, { rootMargin: "200px" });
+  io.observe(sentinel);
 });
