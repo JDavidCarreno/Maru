@@ -9,6 +9,8 @@ let currentProductIndex = -1;
 let currentPage = 0;
 let isLoading = false;
 let hasMore = true;
+let currentFilter = null;
+let observer = null;
 const PAGE_SIZE = 12;
 
 // ── RENDER (INFINITE SCROLL) ────────────────────────────
@@ -53,18 +55,16 @@ async function loadNextPage() {
   sentinel.textContent = "Cargando…";
 
   currentPage++;
-  const products = await getProductsPage(currentPage, PAGE_SIZE);
+  const products = await getProductsPage(currentPage, PAGE_SIZE, currentFilter);
 
   if (products.length < PAGE_SIZE) hasMore = false;
 
   const grid = document.getElementById("product-grid");
 
   if (currentPage === 1 && products.length === 0) {
-    grid.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">🛍️</div>
-        <p>Todavía no hay productos. <a href="admin.html">Ir al panel admin →</a></p>
-      </div>`;
+    grid.innerHTML = currentFilter
+      ? `<div class="empty-state"><div class="empty-icon">🔍</div><p>No hay productos en esta categoría.</p></div>`
+      : `<div class="empty-state"><div class="empty-icon">🛍️</div><p>Todavía no hay productos. <a href="admin.html">Ir al panel admin →</a></p></div>`;
     sentinel.style.display = "none";
     isLoading = false;
     return;
@@ -78,6 +78,36 @@ async function loadNextPage() {
 
   sentinel.textContent = hasMore ? "" : "— Todos los productos cargados —";
   isLoading = false;
+}
+
+function setFilter(category) {
+  currentFilter = category;
+
+  document.querySelectorAll(".filter-btn").forEach((btn) =>
+    btn.classList.toggle("active", btn.dataset.filter === category),
+  );
+
+  currentPage = 0;
+  hasMore = true;
+  currentProducts = [];
+  isLoading = false;
+
+  if (observer) observer.disconnect();
+
+  const grid = document.getElementById("product-grid");
+  grid.innerHTML =
+    '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:3rem">Cargando productos…</p>';
+
+  const sentinel = document.getElementById("sentinel");
+  sentinel.textContent = "";
+  sentinel.style.display = "";
+
+  observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) loadNextPage();
+  }, { rootMargin: "200px" });
+  observer.observe(sentinel);
+
+  loadNextPage();
 }
 
 function truncate(str, max) {
@@ -274,6 +304,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("product-grid").innerHTML =
     '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:3rem">Cargando productos…</p>';
+
+  const sentinelEl = document.getElementById("sentinel");
+  observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) loadNextPage();
+  }, { rootMargin: "200px" });
+  observer.observe(sentinelEl);
+
+  document.getElementById("filters").addEventListener("click", (e) => {
+    const btn = e.target.closest(".filter-btn");
+    if (btn) setFilter(btn.dataset.filter);
+  });
+
   loadNextPage();
 
   const overlay = document.getElementById("modal-overlay");
@@ -337,9 +379,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }, { passive: true });
 
-  const sentinel = document.getElementById("sentinel");
-  const io = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting) loadNextPage();
-  }, { rootMargin: "200px" });
-  io.observe(sentinel);
 });

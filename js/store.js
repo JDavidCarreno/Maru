@@ -20,15 +20,18 @@ async function getProducts() {
   return data;
 }
 
-async function getProductsPage(page, pageSize = 12) {
+async function getProductsPage(page, pageSize = 12, category = null) {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  const { data, error } = await db
+  let query = db
     .from(TABLE)
     .select("*")
-    .order("created_at", { ascending: false })
-    .range(from, to);
+    .order("created_at", { ascending: false });
+
+  if (category) query = query.eq("category", category);
+
+  const { data, error } = await query.range(from, to);
 
   if (error) {
     console.error("getProductsPage:", error.message);
