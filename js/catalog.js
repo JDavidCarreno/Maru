@@ -298,4 +298,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   fs.querySelector(".fs-arrow.next").addEventListener("click", () => {
     openFullscreen((currentGalleryIndex + 1) % currentImages.length);
   });
+
+  let fsTouchStartX = 0;
+  let fsTouchStartY = 0;
+  fs.addEventListener("touchstart", (e) => {
+    fsTouchStartX = e.changedTouches[0].screenX;
+    fsTouchStartY = e.changedTouches[0].screenY;
+  }, { passive: true });
+  fs.addEventListener("touchend", (e) => {
+    const dx = e.changedTouches[0].screenX - fsTouchStartX;
+    const dy = e.changedTouches[0].screenY - fsTouchStartY;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      if (dx < 0) {
+        openFullscreen((currentGalleryIndex + 1) % currentImages.length);
+      } else {
+        openFullscreen((currentGalleryIndex - 1 + currentImages.length) % currentImages.length);
+      }
+    }
+  }, { passive: true });
 });

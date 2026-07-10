@@ -895,24 +895,16 @@
 
                         <div class="form-group">
                             <label for="category_field">Categoría *</label>
-                            <input
-                                type="text"
+                            <select
                                 id="category_field"
                                 name="category_field"
-                                list="categories-list"
-                                placeholder="Ej: Flores, Textiles…"
                                 required
-                            />
-                            <datalist id="categories-list">
-                                <option value="Iluminación"></option>
-                                <option value="Plantas"></option>
-                                <option value="Arte"></option>
-                                <option value="Textiles"></option>
-                                <option value="Espejos"></option>
-                                <option value="Flores"></option>
-                                <option value="Muebles"></option>
-                                <option value="Accesorios"></option>
-                            </datalist>
+                            >
+                                <option value="">Seleccionar…</option>
+                                <option value="navidad">Navidad</option>
+                                <option value="halloween">Halloween</option>
+                                <option value="otros">Otros</option>
+                            </select>
                         </div>
 
                         <div class="form-group">

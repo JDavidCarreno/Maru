@@ -265,6 +265,7 @@ nav a:hover {
     line-height: 1.6;
     flex: 1;
     margin-bottom: 1rem;
+    white-space: pre-wrap;
 }
 
 .card-footer {
@@ -494,6 +495,7 @@ nav a:hover {
     line-height: 1.75;
     font-size: 0.97rem;
     margin-bottom: 1.5rem;
+    white-space: pre-wrap;
 }
 
 .modal-actions {
@@ -637,9 +639,12 @@ footer strong {
 
 @media (max-width: 640px) {
     .modal-product-arrow {
-        width: 34px;
-        height: 34px;
-        font-size: 1.1rem;
+        width: 28px;
+        height: 28px;
+        font-size: 0.9rem;
+        top: auto;
+        bottom: 15px;
+        transform: none;
     }
     .modal-product-arrow.prev {
         left: 6px;
@@ -660,6 +665,7 @@ footer strong {
     justify-content: center;
     opacity: 0;
     pointer-events: none;
+    touch-action: none;
     transition: opacity 0.25s;
 }
 
@@ -915,5 +921,30 @@ footer strong {
     }
     .modal-title {
         font-size: 1.3rem;
+    }
+    .gallery-arrow {
+        width: 28px;
+        height: 28px;
+        font-size: 0.85rem;
+        top: auto;
+        bottom: 10px;
+        transform: none;
+    }
+    .gallery-arrow.prev {
+        left: 8px;
+    }
+    .gallery-arrow.next {
+        right: 8px;
+    }
+    .fs-arrow {
+        width: 30px;
+        height: 30px;
+        font-size: 1rem;
+    }
+    .fs-arrow.prev {
+        left: 8px;
+    }
+    .fs-arrow.next {
+        right: 8px;
     }
 }
