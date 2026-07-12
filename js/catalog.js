@@ -432,8 +432,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       const ratio = clamped / fsPinchStartZoom;
       const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
       const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-      fsPanX = midX - (midX - fsPinchStartPanX) * ratio;
-      fsPanY = midY - (midY - fsPinchStartPanY) * ratio;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      fsPanX = (midX - vw / 2) * (1 - ratio) + fsPinchStartPanX * ratio;
+      fsPanY = (midY - vh / 2) * (1 - ratio) + fsPinchStartPanY * ratio;
       fsZoom = clamped;
       if (fsZoom === 1) { fsPanX = 0; fsPanY = 0; }
       applyFsTransform(false);
