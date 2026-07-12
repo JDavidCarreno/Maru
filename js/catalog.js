@@ -382,6 +382,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let fsPinchStartDist = 0;
   let fsPinchStartZoom = 1;
+  let fsPinchStartPanX = 0;
+  let fsPinchStartPanY = 0;
   let fsSwipeStartX = 0;
   let fsSwipeStartY = 0;
   let fsIsSwiping = false;
@@ -403,6 +405,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (e.touches.length === 2) {
       fsPinchStartDist = getTouchDist(e.touches);
       fsPinchStartZoom = fsZoom;
+      fsPinchStartPanX = fsPanX;
+      fsPinchStartPanY = fsPanY;
       fsIsSwiping = false;
       fsLastTapTime = 0;
     } else if (e.touches.length === 1) {
@@ -424,7 +428,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (e.touches.length === 2) {
       const dist = getTouchDist(e.touches);
       const newZoom = fsPinchStartZoom * (dist / fsPinchStartDist);
-      fsZoom = Math.max(1, Math.min(5, newZoom));
+      const clamped = Math.max(1, Math.min(5, newZoom));
+      const ratio = clamped / fsPinchStartZoom;
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      fsPanX = midX - (midX - fsPinchStartPanX) * ratio;
+      fsPanY = midY - (midY - fsPinchStartPanY) * ratio;
+      fsZoom = clamped;
       if (fsZoom === 1) { fsPanX = 0; fsPanY = 0; }
       applyFsTransform(false);
       e.preventDefault();
