@@ -709,18 +709,23 @@ footer strong {
 }
 
 .fs-image-wrap {
-    display: flex;
-    align-items: center;
-    justify-content: center;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
+    position: relative;
 }
 
 .fs-image {
-    max-width: 92vw;
-    max-height: 88vh;
-    object-fit: contain;
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: 0 0;
+    opacity: 0;
+}
+.fs-image.loaded {
+    opacity: 1;
+    transition: opacity 0.2s;
 }
 
 .fs-arrow {
