@@ -402,7 +402,7 @@ nav a:hover {
     height: 36px;
     font-size: 1.1rem;
     cursor: pointer;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -648,7 +648,9 @@ footer strong {
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    transition: background 0.2s, opacity 0.25s;
+    transition:
+        background 0.2s,
+        opacity 0.25s;
     z-index: 550;
     opacity: 0;
     pointer-events: none;
@@ -739,7 +741,7 @@ footer strong {
     height: 40px;
     font-size: 1.3rem;
     cursor: pointer;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -798,154 +800,170 @@ footer strong {
 
 /* Navidad */
 [data-theme="navidad"] {
-  --blush: #e8b4b4;
-  --rose: #c41e3a;
-  --brown: #1a472a;
-  --muted: #7a8a7a;
+    --blush: #e8b4b4;
+    --rose: #c41e3a;
+    --brown: #1a472a;
+    --muted: #7a8a7a;
 }
 
 [data-theme="navidad"] .hero {
-  background: linear-gradient(160deg, var(--cream) 0%, #f5d5d5 50%, #d4edda 100%);
+    background: linear-gradient(
+        160deg,
+        var(--cream) 0%,
+        #f5d5d5 50%,
+        #d4edda 100%
+    );
 }
 
 [data-theme="navidad"] .hero::after {
-  content: "❄️";
-  position: absolute;
-  bottom: 16px;
-  right: 24px;
-  font-size: 2.2rem;
-  opacity: 0.25;
-  pointer-events: none;
-  animation: snowfall 3s ease-in-out infinite;
+    content: "❄️";
+    position: absolute;
+    bottom: 16px;
+    right: 24px;
+    font-size: 2.2rem;
+    opacity: 0.25;
+    pointer-events: none;
+    animation: snowfall 3s ease-in-out infinite;
 }
 
 @keyframes snowfall {
-  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.25; }
-  50% { transform: translateY(-8px) rotate(180deg); opacity: 0.5; }
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.25;
+    }
+    50% {
+        transform: translateY(-8px) rotate(180deg);
+        opacity: 0.5;
+    }
 }
 
 [data-theme="navidad"] .hero-badge {
-  background: #c41e3a;
-  color: #fff;
+    background: #c41e3a;
+    color: #fff;
 }
 
 /* Halloween — Spooky Chic */
 [data-theme="halloween"] {
-  --cream: #f2efe9;
-  --blush: #d4c4d9;
-  --rose: #d66826;
-  --brown: #1a121e;
-  --text: #110d17;
-  --muted: #5e5368;
-  --shadow: 0 4px 20px rgba(45, 31, 56, 0.1);
+    --cream: #f2efe9;
+    --blush: #d4c4d9;
+    --rose: #d66826;
+    --brown: #1a121e;
+    --text: #110d17;
+    --muted: #5e5368;
+    --shadow: 0 4px 20px rgba(45, 31, 56, 0.1);
 }
 
 [data-theme="halloween"] nav {
-  background: rgba(26, 18, 30, 0.94);
-  border-bottom: 1px solid #2d1f38;
+    background: rgba(26, 18, 30, 0.94);
+    border-bottom: 1px solid #2d1f38;
 }
 
 [data-theme="halloween"] .nav-logo {
-  color: #f2efe9;
+    color: #f2efe9;
 }
 
 [data-theme="halloween"] nav a {
-  color: #d4c4d9;
+    color: #d4c4d9;
 }
 
 [data-theme="halloween"] nav a:hover {
-  color: #f7a046;
+    color: #f7a046;
 }
 
 [data-theme="halloween"] .hero {
-  background: linear-gradient(160deg, #1a121e 0%, #2d1f38 100%);
-  color: #fff;
+    background: linear-gradient(160deg, #1a121e 0%, #2d1f38 100%);
+    color: #fff;
 }
 
 [data-theme="halloween"] .hero::before {
-  background: radial-gradient(circle, rgba(214, 104, 38, 0.15) 0%, transparent 70%);
+    background: radial-gradient(
+        circle,
+        rgba(214, 104, 38, 0.15) 0%,
+        transparent 70%
+    );
 }
 
 [data-theme="halloween"] .hero::after {
-  content: "🎃";
-  position: absolute;
-  bottom: 16px;
-  right: 24px;
-  font-size: 2.2rem;
-  opacity: 0.2;
-  pointer-events: none;
+    content: "🎃";
+    position: absolute;
+    bottom: 16px;
+    right: 24px;
+    font-size: 2.2rem;
+    opacity: 0.2;
+    pointer-events: none;
 }
 
 [data-theme="halloween"] .hero h1 {
-  color: #fff;
+    color: #fff;
 }
 
 [data-theme="halloween"] .hero h1 em {
-  color: #f7a046;
-  text-shadow: 0 0 12px rgba(247, 160, 70, 0.25);
+    color: #f7a046;
+    text-shadow: 0 0 12px rgba(247, 160, 70, 0.25);
 }
 
 [data-theme="halloween"] .hero p {
-  color: rgba(255, 255, 255, 0.65);
+    color: rgba(255, 255, 255, 0.65);
 }
 
 [data-theme="halloween"] .hero-badge {
-  background: #2d1f38;
-  color: #f7a046;
+    background: #2d1f38;
+    color: #f7a046;
 }
 
 [data-theme="halloween"] .hero-btn {
-  background: #d66826;
-  box-shadow: 0 6px 24px rgba(214, 104, 38, 0.35);
+    background: #d66826;
+    box-shadow: 0 6px 24px rgba(214, 104, 38, 0.35);
 }
 
 [data-theme="halloween"] .hero-btn:hover {
-  box-shadow: 0 10px 32px rgba(214, 104, 38, 0.5);
+    box-shadow: 0 10px 32px rgba(214, 104, 38, 0.5);
 }
 
 [data-theme="halloween"] .section-title {
-  color: #1a121e;
+    color: #1a121e;
 }
 
 [data-theme="halloween"] .divider {
-  background: #d66826;
+    background: #d66826;
 }
 
 [data-theme="halloween"] .card-tag {
-  color: #d66826;
+    color: #d66826;
 }
 
 [data-theme="halloween"] .card-price {
-  color: #d66826;
+    color: #d66826;
 }
 
 [data-theme="halloween"] .card-cta {
-  background: #d4c4d9;
-  color: #1a121e;
+    background: #d4c4d9;
+    color: #1a121e;
 }
 
 [data-theme="halloween"] .card-img-placeholder {
-  background: linear-gradient(135deg, #2d1f38, #1a121e);
+    background: linear-gradient(135deg, #2d1f38, #1a121e);
 }
 
 [data-theme="halloween"] .modal-overlay {
-  background: rgba(26, 18, 30, 0.7);
+    background: rgba(26, 18, 30, 0.7);
 }
 
 [data-theme="halloween"] .modal-gallery {
-  background: #2d1f38;
+    background: #2d1f38;
 }
 
 [data-theme="halloween"] .gallery-thumbs {
-  background: #e8e3ea;
+    background: #e8e3ea;
 }
 
 [data-theme="halloween"] footer {
-  background: #110d17;
+    background: #110d17;
 }
 
 [data-theme="halloween"] footer strong {
-  color: #f7a046;
+    color: #f7a046;
 }
 
 /* ── RESPONSIVE ── */

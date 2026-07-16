@@ -163,6 +163,7 @@ async function handleFormSubmit(e) {
   const category = form.category_field.value.trim();
   const price = parseFloat(form.price_field.value);
   const description = form.description_field.value.trim();
+  const is_forall = document.getElementById("is_forall_field").value === "1";
 
   if (!name || !category || isNaN(price)) {
     showToast("Completá los campos obligatorios.", "error");
@@ -175,7 +176,7 @@ async function handleFormSubmit(e) {
   const uploadedUrls = await uploadPendingImages();
   const allImages = [...existingImages, ...uploadedUrls];
 
-  const productData = { name, category, price, description, images: allImages };
+  const productData = { name, category, price, description, images: allImages, is_forall };
 
   let ok;
   if (editingId !== null) {
@@ -210,6 +211,7 @@ async function startEdit(id) {
   const form = document.getElementById("product-form");
   form.name_field.value = p.name;
   form.category_field.value = p.category;
+  document.getElementById("is_forall_field").value = p.is_forall ? "1" : "0";
   form.price_field.value = p.price;
   form.description_field.value = p.description || "";
 

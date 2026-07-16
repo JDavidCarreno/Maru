@@ -62,7 +62,8 @@ async function loadNextPage() {
   sentinel.textContent = "Cargando…";
 
   currentPage++;
-  const products = await getProductsPage(currentPage, PAGE_SIZE, currentFilter);
+  const isForAll = typeof PAGE_IS_FOR_ALL !== "undefined" ? PAGE_IS_FOR_ALL : null;
+  const products = await getProductsPage(currentPage, PAGE_SIZE, currentFilter, isForAll);
 
   if (products.length < PAGE_SIZE) hasMore = false;
 
@@ -270,8 +271,13 @@ function resetFsZoom() {
 function openFullscreen(index) {
   currentGalleryIndex = index;
   renderFullscreenImage(index);
-  document.getElementById("fs-overlay").classList.add("open");
+  const fsOverlay = document.getElementById("fs-overlay");
+  fsOverlay.classList.add("open");
   document.body.style.overflow = "hidden";
+  const show = currentImages.length > 1;
+  fsOverlay.querySelectorAll(".fs-arrow").forEach((a) => {
+    a.style.display = show ? "flex" : "none";
+  });
 }
 
 function closeFullscreen() {

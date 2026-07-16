@@ -20,7 +20,7 @@ async function getProducts() {
   return data;
 }
 
-async function getProductsPage(page, pageSize = 12, category = null) {
+async function getProductsPage(page, pageSize = 12, category = null, isForAll = null) {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
@@ -30,6 +30,11 @@ async function getProductsPage(page, pageSize = 12, category = null) {
     .order("created_at", { ascending: false });
 
   if (category) query = query.eq("category", category);
+
+  if (isForAll === false) {
+    query = query.or("is_forall.is.null,is_forall.eq.false");
+  }
+  // isForAll === true → no filter, todos los productos
 
   const { data, error } = await query.range(from, to);
 

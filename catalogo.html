@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Maru — Catálogo</title>
+        <title>Maru — Catálogo completo</title>
         <link rel="stylesheet" href="css/style.css" />
     </head>
     <body>
@@ -35,95 +35,44 @@
             <div class="divider"></div>
             <div class="filters" id="filters">
                 <button class="filter-btn active" data-filter="">Todos</button>
-                <button class="filter-btn" data-filter="navidad">
-                    Navidad
-                </button>
-                <button class="filter-btn" data-filter="halloween">
-                    Halloween
-                </button>
+                <button class="filter-btn" data-filter="navidad">Navidad</button>
+                <button class="filter-btn" data-filter="halloween">Halloween</button>
                 <button class="filter-btn" data-filter="otros">Otros</button>
             </div>
             <div class="grid" id="product-grid">
                 <!-- se renderiza por catalog.js -->
             </div>
-            <div
-                id="sentinel"
-                style="
-                    text-align: center;
-                    padding: 2rem;
-                    color: var(--muted);
-                    font-size: 0.9rem;
-                "
-            ></div>
+            <div id="sentinel" style="text-align:center;padding:2rem;color:var(--muted);font-size:0.9rem"></div>
         </main>
 
         <!-- FOOTER -->
         <footer id="contacto">
             <p>¿Tienes alguna consulta? Escribinos 💌</p>
-            <p style="margin-top: 0.5rem">
-                <strong>maru@email.com</strong>
-            </p>
-            <p style="margin-top: 1.5rem; font-size: 0.8rem; opacity: 0.5">
-                © 2026 Maru · Todos los derechos reservados
-            </p>
+            <p style="margin-top:0.5rem"><strong>maru@email.com</strong></p>
+            <p style="margin-top:1.5rem;font-size:0.8rem;opacity:0.5">© 2026 Maru · Todos los derechos reservados</p>
         </footer>
 
         <!-- MODAL DE PRODUCTO -->
-        <div
-            class="modal-overlay"
-            id="modal-overlay"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="modal-title"
-        >
-            <button
-                class="modal-product-arrow prev"
-                aria-label="Producto anterior"
-            >
-                ‹
-            </button>
-            <button
-                class="modal-product-arrow next"
-                aria-label="Producto siguiente"
-            >
-                ›
-            </button>
+        <div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <button class="modal-product-arrow prev" aria-label="Producto anterior">‹</button>
+            <button class="modal-product-arrow next" aria-label="Producto siguiente">›</button>
             <div class="modal">
-                <!-- galería -->
                 <div class="modal-gallery">
-                    <button
-                        class="modal-close"
-                        id="modal-close-btn"
-                        aria-label="Cerrar"
-                    >
-                        ✕
-                    </button>
+                    <button class="modal-close" id="modal-close-btn" aria-label="Cerrar">✕</button>
                     <div id="gallery-main-area"><!-- imagen principal --></div>
-                    <button class="gallery-arrow prev" aria-label="Anterior">
-                        ‹
-                    </button>
-                    <button class="gallery-arrow next" aria-label="Siguiente">
-                        ›
-                    </button>
+                    <button class="gallery-arrow prev" aria-label="Anterior">‹</button>
+                    <button class="gallery-arrow next" aria-label="Siguiente">›</button>
                     <div class="gallery-dots" id="gallery-dots"></div>
                 </div>
-
-                <!-- miniaturas -->
                 <div class="gallery-thumbs" id="gallery-thumbs"></div>
-
-                <!-- info -->
                 <div class="modal-body">
                     <p class="modal-tag" id="modal-tag"></p>
                     <h2 class="modal-title" id="modal-title"></h2>
                     <p class="modal-price" id="modal-price"></p>
                     <p class="modal-desc" id="modal-desc"></p>
                     <div class="modal-actions">
-                        <button class="btn-primary" onclick="closeModal()">
-                            Cerrar
-                        </button>
-                        <button class="btn-secondary" onclick="closeModal()">
-                            💬 Consultar por WhatsApp
-                        </button>
+                        <button class="btn-primary" onclick="closeModal()">Cerrar</button>
+                        <button class="btn-secondary" onclick="closeModal()">💬 Consultar por WhatsApp</button>
                     </div>
                 </div>
             </div>
@@ -131,9 +80,7 @@
 
         <!-- FULLSCREEN OVERLAY -->
         <div class="fs-overlay" id="fs-overlay">
-            <button class="fs-close" id="fs-close-btn" aria-label="Cerrar">
-                ✕
-            </button>
+            <button class="fs-close" id="fs-close-btn" aria-label="Cerrar">✕</button>
             <button class="fs-arrow prev" aria-label="Anterior">‹</button>
             <button class="fs-arrow next" aria-label="Siguiente">›</button>
             <div class="fs-image-wrap">
@@ -146,7 +93,7 @@
         <script src="js/supabase.js"></script>
         <script src="js/store.js"></script>
         <script>
-            const PAGE_IS_FOR_ALL = false;
+            const PAGE_IS_FOR_ALL = true;
         </script>
         <script src="js/catalog.js"></script>
     </body>
