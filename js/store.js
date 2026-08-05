@@ -106,14 +106,69 @@ async function deleteProduct(id) {
 
 // ── IMÁGENES ─────────────────────────────────────────────
 
+// Redimensiona y comprime la imagen antes de subirla,
+// para que pese mucho menos y cargue rápido en el catálogo.
+function compressImage(file, maxDimension = 1920, quality = 0.82) {
+  return new Promise((resolve) => {
+    if (!file.type || !file.type.startsWith("image/")) {
+      resolve(file);
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const max = Math.max(img.width, img.height);
+      if (max <= maxDimension) {
+        resolve(file);
+        return;
+      }
+
+      const scale = maxDimension / max;
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, w, h);
+
+      const mime = file.type === "image/png" ? "image/png" : "image/jpeg";
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            resolve(file);
+            return;
+          }
+          const name = mime === "image/png" ? "optimized.png" : "optimized.jpg";
+          resolve(new File([blob], name, { type: mime }));
+        },
+        mime,
+        mime === "image/png" ? undefined : quality,
+      );
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+
+    img.src = url;
+  });
+}
+
 async function uploadImage(file) {
-  const ext = file.name.split(".").pop();
+  const optimized = await compressImage(file);
+  const ext = optimized.type === "image/png" ? "png" : "jpg";
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const path = `public/${filename}`;
 
   const { error } = await db.storage
     .from(BUCKET)
-    .upload(path, file, { cacheControl: "3600", upsert: false });
+    .upload(path, optimized, { cacheControl: "3600", upsert: false });
 
   if (error) {
     console.error("uploadImage:", error.message);

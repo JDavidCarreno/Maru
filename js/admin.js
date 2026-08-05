@@ -310,7 +310,7 @@ async function uploadPendingImages() {
     const status = row.querySelector(".img-status");
     if (!input || !input.files[0]) continue;
 
-    status.textContent = "⏫ Subiendo…";
+    status.textContent = "✂️ Optimizando y subiendo…";
     const url = await uploadImage(input.files[0]);
     if (url) {
       urls.push(url);
