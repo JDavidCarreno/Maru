@@ -4,7 +4,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Maru — Catálogo</title>
-        <link rel="stylesheet" href="css/style.css?v=6" />
+        <link rel="stylesheet" href="css/style.css?v=7" />
     </head>
     <body>
         <!-- NAVEGACIÓN -->
@@ -68,67 +68,6 @@
             </p>
         </footer>
 
-        <!-- MODAL DE PRODUCTO -->
-        <div
-            class="modal-overlay"
-            id="modal-overlay"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="modal-title"
-        >
-            <button
-                class="modal-product-arrow prev"
-                aria-label="Producto anterior"
-            >
-                ‹
-            </button>
-            <button
-                class="modal-product-arrow next"
-                aria-label="Producto siguiente"
-            >
-                ›
-            </button>
-            <div class="modal">
-                <!-- galería -->
-                <div class="modal-gallery">
-                    <button
-                        class="modal-close"
-                        id="modal-close-btn"
-                        aria-label="Cerrar"
-                    >
-                        ✕
-                    </button>
-                    <div id="gallery-main-area"><!-- imagen principal --></div>
-                    <button class="gallery-arrow prev" aria-label="Anterior">
-                        ‹
-                    </button>
-                    <button class="gallery-arrow next" aria-label="Siguiente">
-                        ›
-                    </button>
-                    <div class="gallery-dots" id="gallery-dots"></div>
-                </div>
-
-                <!-- miniaturas -->
-                <div class="gallery-thumbs" id="gallery-thumbs"></div>
-
-                <!-- info -->
-                <div class="modal-body">
-                    <p class="modal-tag" id="modal-tag"></p>
-                    <h2 class="modal-title" id="modal-title"></h2>
-                    <p class="modal-price" id="modal-price"></p>
-                    <p class="modal-desc" id="modal-desc"></p>
-                    <div class="modal-actions">
-                        <button class="btn-primary" onclick="closeModal()">
-                            Cerrar
-                        </button>
-                        <button class="btn-secondary" onclick="closeModal()">
-                            💬 Consultar por WhatsApp
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- FULLSCREEN OVERLAY -->
         <div class="fs-overlay" id="fs-overlay">
             <button class="fs-close" id="fs-close-btn" aria-label="Cerrar">
@@ -156,6 +95,10 @@
                 </button>
             </div>
             <span class="fs-counter" id="fs-counter"></span>
+            <div class="fs-info">
+                <span class="fs-info-name" id="fs-info-name"></span>
+                <span class="fs-info-price" id="fs-info-price"></span>
+            </div>
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -164,6 +107,6 @@
         <script>
             const PAGE_IS_FOR_ALL = false;
         </script>
-        <script src="js/catalog.js?v=6"></script>
+        <script src="js/catalog.js?v=7"></script>
     </body>
 </html>

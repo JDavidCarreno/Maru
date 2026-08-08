@@ -1,5 +1,5 @@
 /**
- * catalog.js — renderiza la grilla de productos y el modal con galería.
+ * catalog.js — renderiza la grilla de productos y el visor fullscreen.
  */
 
 let currentGalleryIndex = 0;
@@ -50,11 +50,6 @@ function createCardImage(src, alt) {
   return img;
 }
 
-window.addEventListener("resize", () => {
-  const main = document.querySelector(".gallery-main");
-  if (main && main._applyFit) main._applyFit();
-});
-
 function createCard(product) {
   const card = document.createElement("article");
   card.className = "card";
@@ -69,7 +64,7 @@ function createCard(product) {
       <p class="card-desc">${truncate(product.description || "", 90)}</p>
       <div class="card-footer">
         <span class="card-price">${formatPrice(product.price)}</span>
-        <span class="card-cta">Ver más</span>
+        <span class="card-cta">Ver fotos</span>
       </div>
     </div>`;
 
@@ -84,9 +79,9 @@ function createCard(product) {
       })();
   card.insertBefore(cover, card.firstChild);
 
-  card.addEventListener("click", () => openModal(product));
+  card.addEventListener("click", () => openDirect(product));
   card.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") openModal(product);
+    if (e.key === "Enter" || e.key === " ") openDirect(product);
   });
 
   return card;
@@ -165,142 +160,22 @@ function truncate(str, max) {
   return str.length > max ? str.slice(0, max).trimEnd() + "…" : str;
 }
 
-// ── MODAL ────────────────────────────────────────────────
+// ── APERTURA DIRECTA A FULLSCREEN ─────────────────────────
 
-function openModal(product) {
+function openDirect(product) {
+  const images = product.images && product.images.length ? product.images : [];
+  if (!images.length) return;
+
   currentProductIndex = currentProducts.findIndex((p) => p.id === product.id);
-  currentImages = product.images && product.images.length ? product.images : [];
+  currentImages = images;
   currentGalleryIndex = 0;
 
-  renderModalContent(product);
-
-  const overlay = document.getElementById("modal-overlay");
-  overlay.classList.add("open");
-  document.body.style.overflow = "hidden";
-  overlay.querySelector(".modal-close").focus();
-}
-
-function closeModal() {
-  document.getElementById("modal-overlay").classList.remove("open");
-  document.body.style.overflow = "";
-}
-
-function renderModalContent(product) {
-  const overlay = document.getElementById("modal-overlay");
-
-  // imagen principal
-  overlay
-    .querySelector("#gallery-main-area")
-    .replaceChildren(buildMainImage(0));
-
-  // dots
-  overlay.querySelector("#gallery-dots").innerHTML = currentImages
-    .map(
-      (_, i) =>
-        `<button class="gallery-dot ${i === 0 ? "active" : ""}" data-index="${i}" aria-label="Imagen ${i + 1}"></button>`,
-    )
-    .join("");
-
-  // miniaturas
-  overlay.querySelector("#gallery-thumbs").innerHTML = currentImages
-    .map(
-      (url, i) =>
-        `<img class="gallery-thumb ${i === 0 ? "active" : ""}" src="${url}" alt="Miniatura ${i + 1}" data-index="${i}" loading="lazy">`,
-    )
-    .join("");
-
-  // info
-  overlay.querySelector("#modal-tag").textContent = product.category;
-  overlay.querySelector("#modal-title").textContent = product.name;
-  overlay.querySelector("#modal-price").textContent = formatPrice(
+  document.getElementById("fs-info-name").textContent = product.name;
+  document.getElementById("fs-info-price").textContent = formatPrice(
     product.price,
   );
-  overlay.querySelector("#modal-desc").textContent = product.description || "";
 
-  // flechas: solo si hay más de una imagen
-  overlay
-    .querySelectorAll(".gallery-arrow")
-    .forEach(
-      (a) => (a.style.display = currentImages.length > 1 ? "flex" : "none"),
-    );
-
-  bindGalleryEvents(overlay);
-}
-
-function buildMainImage(index) {
-  const url = currentImages[index];
-  if (!url) {
-    const ph = document.createElement("div");
-    ph.className = "gallery-main-placeholder";
-    ph.textContent = "Sin imagen";
-    return ph;
-  }
-  const img = document.createElement("img");
-  img.className = "gallery-main";
-  img.src = url;
-  img.alt = `Imagen ${index + 1}`;
-  autoFitImage(img);
-  return img;
-}
-
-function bindGalleryEvents(overlay) {
-  overlay.querySelector("#gallery-dots").addEventListener("click", (e) => {
-    const btn = e.target.closest(".gallery-dot");
-    if (btn) goToSlide(parseInt(btn.dataset.index), overlay);
-  });
-
-  overlay.querySelector("#gallery-thumbs").addEventListener("click", (e) => {
-    const thumb = e.target.closest("[data-index]");
-    if (thumb) openFullscreen(parseInt(thumb.dataset.index));
-  });
-
-  const prevBtn = overlay.querySelector(".gallery-arrow.prev").cloneNode(true);
-  const nextBtn = overlay.querySelector(".gallery-arrow.next").cloneNode(true);
-  overlay.querySelector(".gallery-arrow.prev").replaceWith(prevBtn);
-  overlay.querySelector(".gallery-arrow.next").replaceWith(nextBtn);
-
-  prevBtn.addEventListener("click", () =>
-    goToSlide(
-      (currentGalleryIndex - 1 + currentImages.length) % currentImages.length,
-      overlay,
-    ),
-  );
-  nextBtn.addEventListener("click", () =>
-    goToSlide((currentGalleryIndex + 1) % currentImages.length, overlay),
-  );
-}
-
-function goToSlide(index, overlay) {
-  currentGalleryIndex = index;
-  overlay
-    .querySelector("#gallery-main-area")
-    .replaceChildren(buildMainImage(index));
-  overlay
-    .querySelectorAll(".gallery-dot")
-    .forEach((d, i) => d.classList.toggle("active", i === index));
-  overlay
-    .querySelectorAll(".gallery-thumb")
-    .forEach((t) =>
-      t.classList.toggle("active", parseInt(t.dataset.index) === index),
-    );
-}
-
-// ── PRODUCT NAVIGATION ───────────────────────────────────
-
-function prevProduct() {
-  if (currentProducts.length < 2 || currentProductIndex < 1) return;
-  closeModal();
-  openModal(currentProducts[currentProductIndex - 1]);
-}
-
-function nextProduct() {
-  if (
-    currentProducts.length < 2 ||
-    currentProductIndex >= currentProducts.length - 1
-  )
-    return;
-  closeModal();
-  openModal(currentProducts[currentProductIndex + 1]);
+  openFullscreen(0);
 }
 
 // ── FULLSCREEN ZOOM ──────────────────────────────────────
@@ -378,13 +253,7 @@ function openFullscreen(index) {
 
 function closeFullscreen() {
   document.getElementById("fs-overlay").classList.remove("open");
-  const modalOverlay = document.getElementById("modal-overlay");
-  if (modalOverlay.classList.contains("open")) {
-    goToSlide(currentGalleryIndex, modalOverlay);
-  }
-  if (!modalOverlay.classList.contains("open")) {
-    document.body.style.overflow = "";
-  }
+  document.body.style.overflow = "";
 }
 
 function renderFullscreenImage(index) {
@@ -416,30 +285,17 @@ function handleFsLoad() {
 
 document.addEventListener("keydown", (e) => {
   const fs = document.getElementById("fs-overlay");
-  const overlay = document.getElementById("modal-overlay");
 
-  if (fs.classList.contains("open")) {
-    if (e.key === "Escape") {
-      closeFullscreen();
-      return;
-    }
-    if (e.key === "ArrowRight")
-      openFullscreen((currentGalleryIndex + 1) % currentImages.length);
-    if (e.key === "ArrowLeft")
-      openFullscreen(
-        (currentGalleryIndex - 1 + currentImages.length) % currentImages.length,
-      );
+  if (!fs.classList.contains("open")) return;
+  if (e.key === "Escape") {
+    closeFullscreen();
     return;
   }
-
-  if (!overlay.classList.contains("open")) return;
-  if (e.key === "Escape") closeModal();
   if (e.key === "ArrowRight")
-    goToSlide((currentGalleryIndex + 1) % currentImages.length, overlay);
+    openFullscreen((currentGalleryIndex + 1) % currentImages.length);
   if (e.key === "ArrowLeft")
-    goToSlide(
+    openFullscreen(
       (currentGalleryIndex - 1 + currentImages.length) % currentImages.length,
-      overlay,
     );
 });
 
@@ -473,49 +329,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   loadNextPage();
-
-  const overlay = document.getElementById("modal-overlay");
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) closeModal();
-  });
-  overlay.addEventListener("click", (e) => {
-    if (e.target.classList.contains("gallery-main") && currentImages.length) {
-      openFullscreen(currentGalleryIndex);
-    }
-  });
-  document
-    .getElementById("modal-close-btn")
-    .addEventListener("click", closeModal);
-
-  overlay
-    .querySelector(".modal-product-arrow.prev")
-    .addEventListener("click", prevProduct);
-  overlay
-    .querySelector(".modal-product-arrow.next")
-    .addEventListener("click", nextProduct);
-
-  let touchStartX = 0;
-  let touchStartY = 0;
-  overlay.addEventListener(
-    "touchstart",
-    (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-      touchStartY = e.changedTouches[0].screenY;
-    },
-    { passive: true },
-  );
-  overlay.addEventListener(
-    "touchend",
-    (e) => {
-      const dx = e.changedTouches[0].screenX - touchStartX;
-      const dy = e.changedTouches[0].screenY - touchStartY;
-      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-        if (dx < 0) nextProduct();
-        else prevProduct();
-      }
-    },
-    { passive: true },
-  );
 
   const fs = document.getElementById("fs-overlay");
   document.getElementById("fs-image").addEventListener("load", handleFsLoad);
