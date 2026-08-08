@@ -4,6 +4,7 @@
 
 let editingId = null;
 let existingImages = []; // URLs ya guardadas al editar un producto
+let removedImages = []; // URLs de imágenes quitadas en la edición actual
 
 // ── AUTH ─────────────────────────────────────────────────
 
@@ -195,9 +196,40 @@ async function handleFormSubmit(e) {
 
   setBusy(false);
   if (ok) {
+    const freed = await deleteRemovedImages();
+    if (freed > 0) {
+      showToast(`✅ Guardado. 🗑️ ${freed} imagen(es) eliminada(s) del storage.`);
+    }
     resetForm();
     await renderAdminTable();
   }
+}
+
+// Borra del storage las imágenes quitadas durante la edición,
+// solo si ya no son usadas por ningún otro producto.
+// Devuelve cuántas se lograron borrar.
+async function deleteRemovedImages() {
+  if (!removedImages.length) return 0;
+
+  let deleted = 0;
+  const kept = [];
+  for (const url of removedImages) {
+    const usedElsewhere = await imageIsUsedElsewhere(url, editingId);
+    if (usedElsewhere) {
+      kept.push(url);
+      continue;
+    }
+    const ok = await deleteImage(url);
+    if (ok) deleted++;
+    else kept.push(url);
+  }
+
+  removedImages = [];
+
+  if (kept.length) {
+    console.warn("Imágenes no borradas del storage:", kept);
+  }
+  return deleted;
 }
 
 async function startEdit(id) {
@@ -207,6 +239,7 @@ async function startEdit(id) {
 
   editingId = id;
   existingImages = p.images || [];
+  removedImages = [];
 
   const form = document.getElementById("product-form");
   form.name_field.value = p.name;
@@ -231,6 +264,7 @@ async function startEdit(id) {
 function resetForm() {
   editingId = null;
   existingImages = [];
+  removedImages = [];
   document.getElementById("product-form").reset();
   document.getElementById("images-container").innerHTML = "";
   document.getElementById("form-title").textContent = "➕ Nuevo producto";
@@ -257,6 +291,7 @@ function removeExistingImage(btn) {
   const row = btn.closest(".image-field-row.existing");
   const url = row.dataset.url;
   existingImages = existingImages.filter((u) => u !== url);
+  removedImages.push(url);
   row.remove();
 }
 

@@ -179,11 +179,34 @@ async function uploadImage(file) {
   return data.publicUrl;
 }
 
+// Verifica si una URL de imagen está siendo usada por otro producto.
+// Ante cualquier error, devuelve true para no borrar imágenes en uso.
+async function imageIsUsedElsewhere(url, excludeId = null) {
+  try {
+    let query = db.from(TABLE).select("id").contains("images", [url]);
+    if (excludeId !== null) query = query.neq("id", excludeId);
+    const { data, error } = await query;
+    if (error) {
+      console.error("imageIsUsedElsewhere:", error.message);
+      return true;
+    }
+    return (data || []).length > 0;
+  } catch (err) {
+    console.error("imageIsUsedElsewhere:", err);
+    return true;
+  }
+}
+
 async function deleteImage(url) {
   // extrae el path desde la URL pública
   const path = url.split(`${BUCKET}/`)[1];
-  if (!path) return;
-  await db.storage.from(BUCKET).remove([path]);
+  if (!path) return false;
+  const { error } = await db.storage.from(BUCKET).remove([path]);
+  if (error) {
+    console.error("deleteImage:", error.message);
+    return false;
+  }
+  return true;
 }
 
 // ── SETTINGS ─────────────────────────────────────────────
