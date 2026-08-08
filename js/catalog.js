@@ -18,16 +18,44 @@ let fsTy = 0; // traslación total Y
 let fsFitScale = 1; // escala para encajar la imagen en pantalla
 let fsFitTx = 0; // traslación X del encaje
 let fsFitTy = 0; // traslación Y del encaje
+let fsRotation = 0; // rotación en grados (0/90/180/270)
 const PAGE_SIZE = 12;
 
 // ── RENDER (INFINITE SCROLL) ────────────────────────────
 
-function createCard(product) {
-  const images = product.images || [];
-  const coverHTML = images.length
-    ? `<img class="card-img" src="${images[0]}" alt="${product.name}" loading="lazy">`
-    : `<div class="card-img-placeholder">🏷️</div>`;
+function autoFitImage(img, tolerance = 0.12) {
+  const apply = () => {
+    const cw = img.clientWidth;
+    const ch = img.clientHeight;
+    if (!cw || !ch || !img.naturalWidth) return;
+    const imgRatio = img.naturalWidth / img.naturalHeight;
+    const boxRatio = cw / ch;
+    img.classList.toggle(
+      "fit-contain",
+      Math.abs(imgRatio - boxRatio) > tolerance,
+    );
+  };
+  img.addEventListener("load", apply);
+  if (img.complete) requestAnimationFrame(apply);
+  img._applyFit = apply;
+}
 
+function createCardImage(src, alt) {
+  const img = document.createElement("img");
+  img.className = "card-img";
+  img.src = src;
+  img.alt = alt;
+  img.loading = "lazy";
+  autoFitImage(img);
+  return img;
+}
+
+window.addEventListener("resize", () => {
+  const main = document.querySelector(".gallery-main");
+  if (main && main._applyFit) main._applyFit();
+});
+
+function createCard(product) {
   const card = document.createElement("article");
   card.className = "card";
   card.setAttribute("role", "button");
@@ -35,7 +63,6 @@ function createCard(product) {
   card.setAttribute("aria-label", `Ver ${product.name}`);
 
   card.innerHTML = `
-    ${coverHTML}
     <div class="card-body">
       <span class="card-tag">${product.category}</span>
       <h3 class="card-title">${product.name}</h3>
@@ -45,6 +72,17 @@ function createCard(product) {
         <span class="card-cta">Ver más</span>
       </div>
     </div>`;
+
+  const images = product.images || [];
+  const cover = images.length
+    ? createCardImage(images[0], product.name)
+    : (() => {
+        const ph = document.createElement("div");
+        ph.className = "card-img-placeholder";
+        ph.textContent = "🏷️";
+        return ph;
+      })();
+  card.insertBefore(cover, card.firstChild);
 
   card.addEventListener("click", () => openModal(product));
   card.addEventListener("keydown", (e) => {
@@ -151,7 +189,9 @@ function renderModalContent(product) {
   const overlay = document.getElementById("modal-overlay");
 
   // imagen principal
-  overlay.querySelector("#gallery-main-area").innerHTML = buildMainImage(0);
+  overlay
+    .querySelector("#gallery-main-area")
+    .replaceChildren(buildMainImage(0));
 
   // dots
   overlay.querySelector("#gallery-dots").innerHTML = currentImages
@@ -189,9 +229,18 @@ function renderModalContent(product) {
 
 function buildMainImage(index) {
   const url = currentImages[index];
-  return url
-    ? `<img class="gallery-main" src="${url}" alt="Imagen ${index + 1}">`
-    : `<div class="gallery-main-placeholder">Sin imagen</div>`;
+  if (!url) {
+    const ph = document.createElement("div");
+    ph.className = "gallery-main-placeholder";
+    ph.textContent = "Sin imagen";
+    return ph;
+  }
+  const img = document.createElement("img");
+  img.className = "gallery-main";
+  img.src = url;
+  img.alt = `Imagen ${index + 1}`;
+  autoFitImage(img);
+  return img;
 }
 
 function bindGalleryEvents(overlay) {
@@ -223,7 +272,9 @@ function bindGalleryEvents(overlay) {
 
 function goToSlide(index, overlay) {
   currentGalleryIndex = index;
-  overlay.querySelector("#gallery-main-area").innerHTML = buildMainImage(index);
+  overlay
+    .querySelector("#gallery-main-area")
+    .replaceChildren(buildMainImage(index));
   overlay
     .querySelectorAll(".gallery-dot")
     .forEach((d, i) => d.classList.toggle("active", i === index));
@@ -257,13 +308,58 @@ function nextProduct() {
 function applyFsTransform(animate) {
   const img = document.getElementById("fs-image");
   img.style.transition = animate ? "transform 0.2s ease-out" : "none";
-  img.style.transform = `translate(${fsTx}px, ${fsTy}px) scale(${fsScale})`;
+  img.style.transform = `translate(${fsTx}px, ${fsTy}px) scale(${fsScale}) rotate(${fsRotation}deg)`;
 }
 
 function resetFsZoom() {
   fsScale = fsFitScale;
   fsTx = fsFitTx;
   fsTy = fsFitTy;
+}
+
+// Calcula el encaje a pantalla teniendo en cuenta la rotación.
+// Con transform-origin 0 0, la caja rotada se reubica según el cuadrante.
+function computeFsFit(rotation, vw, vh, nw, nh) {
+  const swap = rotation === 90 || rotation === 270;
+  const effW = swap ? nh : nw;
+  const effH = swap ? nw : nh;
+  const scale = Math.min(vw / effW, vh / effH) * 0.92;
+
+  let tx, ty;
+  switch (rotation) {
+    case 90:
+      tx = (vw + effW * scale) / 2;
+      ty = (vh - effH * scale) / 2;
+      break;
+    case 180:
+      tx = (vw + effW * scale) / 2;
+      ty = (vh + effH * scale) / 2;
+      break;
+    case 270:
+      tx = (vw - effW * scale) / 2;
+      ty = (vh + effH * scale) / 2;
+      break;
+    default:
+      tx = (vw - effW * scale) / 2;
+      ty = (vh - effH * scale) / 2;
+  }
+  return { scale, tx, ty };
+}
+
+// Rota la imagen y reencuadra a pantalla.
+function rotateImage(dir) {
+  fsRotation = (fsRotation + (dir === "right" ? 90 : 270)) % 360;
+  const img = document.getElementById("fs-image");
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const fit = computeFsFit(fsRotation, vw, vh, img.naturalWidth, img.naturalHeight);
+  fsFitScale = fit.scale;
+  fsFitTx = fit.tx;
+  fsFitTy = fit.ty;
+  fsScale = fsFitScale;
+  fsTx = fsFitTx;
+  fsTy = fsFitTy;
+  applyFsTransform(false);
 }
 
 // ── FULLSCREEN OVERLAY ───────────────────────────────────
@@ -294,6 +390,7 @@ function closeFullscreen() {
 function renderFullscreenImage(index) {
   const img = document.getElementById("fs-image");
   img.classList.remove("loaded");
+  fsRotation = 0;
   img.src = currentImages[index];
   if (img.complete) handleFsLoad();
   document.getElementById("fs-counter").textContent =
@@ -304,9 +401,10 @@ function handleFsLoad() {
   const img = document.getElementById("fs-image");
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  fsFitScale = Math.min(vw / img.naturalWidth, vh / img.naturalHeight) * 0.92;
-  fsFitTx = (vw - img.naturalWidth * fsFitScale) / 2;
-  fsFitTy = (vh - img.naturalHeight * fsFitScale) / 2;
+  const fit = computeFsFit(fsRotation, vw, vh, img.naturalWidth, img.naturalHeight);
+  fsFitScale = fit.scale;
+  fsFitTx = fit.tx;
+  fsFitTy = fit.ty;
   fsScale = fsFitScale;
   fsTx = fsFitTx;
   fsTy = fsFitTy;
@@ -436,6 +534,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   fs.querySelector(".fs-arrow.next").addEventListener("click", () => {
     openFullscreen((currentGalleryIndex + 1) % currentImages.length);
   });
+
+  document
+    .getElementById("fs-rotate-left")
+    .addEventListener("click", () => rotateImage("left"));
+  document
+    .getElementById("fs-rotate-right")
+    .addEventListener("click", () => rotateImage("right"));
 
   // ── GESTOS FULLSCREEN (Pointer Events) ──────────────────
   // Usamos Pointer Events en lugar de Touch Events porque:

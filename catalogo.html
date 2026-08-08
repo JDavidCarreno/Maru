@@ -4,7 +4,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Maru — Catálogo completo</title>
-        <link rel="stylesheet" href="css/style.css" />
+        <link rel="stylesheet" href="css/style.css?v=6" />
     </head>
     <body>
         <!-- NAVEGACIÓN -->
@@ -86,15 +86,31 @@
             <div class="fs-image-wrap">
                 <img class="fs-image" id="fs-image" alt="Imagen" />
             </div>
+            <div class="fs-rotate">
+                <button
+                    class="fs-rotate-btn"
+                    id="fs-rotate-left"
+                    aria-label="Rotar a la izquierda"
+                >
+                    ⟲ Girar
+                </button>
+                <button
+                    class="fs-rotate-btn"
+                    id="fs-rotate-right"
+                    aria-label="Rotar a la derecha"
+                >
+                    Girar ⟳
+                </button>
+            </div>
             <span class="fs-counter" id="fs-counter"></span>
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-        <script src="js/supabase.js"></script>
-        <script src="js/store.js"></script>
+        <script src="js/supabase.js?v=2"></script>
+        <script src="js/store.js?v=2"></script>
         <script>
             const PAGE_IS_FOR_ALL = true;
         </script>
-        <script src="js/catalog.js"></script>
+        <script src="js/catalog.js?v=6"></script>
     </body>
 </html>
