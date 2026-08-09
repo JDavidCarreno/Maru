@@ -5,6 +5,7 @@
 let editingId = null;
 let existingImages = []; // URLs ya guardadas al editar un producto
 let removedImages = []; // URLs de imágenes quitadas en la edición actual
+let adminProducts = []; // lista actual de productos en el orden visible
 
 // ── AUTH ─────────────────────────────────────────────────
 
@@ -104,18 +105,24 @@ function bindThemeEvents() {
 async function renderAdminTable() {
   const tbody = document.getElementById("admin-tbody");
   tbody.innerHTML =
-    '<tr><td colspan="5" class="table-empty">Cargando…</td></tr>';
+    '<tr><td colspan="6" class="table-empty">Cargando…</td></tr>';
 
-  const products = await getProducts();
-  tbody.innerHTML = "";
+  adminProducts = await getProducts();
 
-  if (products.length === 0) {
+  if (adminProducts.length === 0) {
     tbody.innerHTML =
-      '<tr><td colspan="5" class="table-empty">No hay productos. Cargá el primero 👆</td></tr>';
+      '<tr><td colspan="6" class="table-empty">No hay productos. Cargá el primero 👆</td></tr>';
     return;
   }
 
-  products.forEach((p) => {
+  renderTableRows();
+}
+
+function renderTableRows() {
+  const tbody = document.getElementById("admin-tbody");
+  tbody.innerHTML = "";
+
+  adminProducts.forEach((p, index) => {
     const images = p.images || [];
     const thumb = images.length
       ? `<img class="admin-thumb" src="${images[0]}" alt="${p.name}">`
@@ -123,6 +130,10 @@ async function renderAdminTable() {
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
+      <td data-label="Orden" class="admin-order">
+        <button class="admin-order-btn" onclick="moveProduct(${index}, -1)" ${index === 0 ? "disabled" : ""} aria-label="Subir ${p.name}">↑</button>
+        <button class="admin-order-btn" onclick="moveProduct(${index}, 1)" ${index === adminProducts.length - 1 ? "disabled" : ""} aria-label="Bajar ${p.name}">↓</button>
+      </td>
       <td data-label="Imagen">${thumb}</td>
       <td data-label="Nombre / Categoría">
         <strong>${p.name}</strong>
@@ -136,6 +147,32 @@ async function renderAdminTable() {
       </td>`;
     tbody.appendChild(tr);
   });
+}
+
+// Mueve una fila hacia arriba (-1) o abajo (+1) solo en pantalla.
+// El orden se persiste con "Guardar orden".
+function moveProduct(index, delta) {
+  const target = index + delta;
+  if (target < 0 || target >= adminProducts.length) return;
+
+  const [item] = adminProducts.splice(index, 1);
+  adminProducts.splice(target, 0, item);
+  renderTableRows();
+}
+
+async function saveOrder() {
+  if (!adminProducts.length) return;
+  const btn = document.getElementById("btn-save-order");
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Guardando…";
+
+  const ok = await saveProductOrder(adminProducts.map((p) => p.id));
+
+  btn.disabled = false;
+  btn.textContent = original;
+  showToast(ok ? "✅ Orden guardado." : "❌ Error al guardar el orden.", ok ? "success" : "error");
+  if (ok) await renderAdminTable();
 }
 
 // ── FORM ─────────────────────────────────────────────────
@@ -187,7 +224,8 @@ async function handleFormSubmit(e) {
       ok ? "success" : "error",
     );
   } else {
-    ok = await addProduct(productData);
+    // los productos nuevos aparecen arriba (el orden manual lo define el admin)
+    ok = await addProduct({ ...productData, sort_order: 0 });
     showToast(
       ok ? "✅ Producto agregado." : "Error al agregar.",
       ok ? "success" : "error",

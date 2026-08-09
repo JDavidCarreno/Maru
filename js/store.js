@@ -11,6 +11,7 @@ async function getProducts() {
   const { data, error } = await db
     .from(TABLE)
     .select("*")
+    .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -27,6 +28,7 @@ async function getProductsPage(page, pageSize = 12, category = null, isForAll = 
   let query = db
     .from(TABLE)
     .select("*")
+    .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
 
   if (category) query = query.eq("category", category);
@@ -72,6 +74,22 @@ async function updateProduct(id, product) {
     return null;
   }
   return data;
+}
+
+// Persiste el orden completo de productos: ids en el orden deseado (0..N-1).
+async function saveProductOrder(ids) {
+  let ok = true;
+  for (let i = 0; i < ids.length; i++) {
+    const { error } = await db
+      .from(TABLE)
+      .update({ sort_order: i })
+      .eq("id", ids[i]);
+    if (error) {
+      console.error(`saveProductOrder (${ids[i]}):`, error.message);
+      ok = false;
+    }
+  }
+  return ok;
 }
 
 async function deleteProduct(id) {
