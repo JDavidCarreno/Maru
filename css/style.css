@@ -229,6 +229,22 @@ nav a:hover {
     color: var(--white);
 }
 
+/* ── NOTICE WARNING ── */
+.notice-warning {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: #fff3cd;
+    border: 1.5px solid #f0c36d;
+    color: #7a5a00;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    margin-bottom: 1.8rem;
+    box-shadow: 0 2px 8px rgba(122, 90, 0, 0.12);
+}
+
 /* ── PRODUCT GRID ── */
 .grid {
     display: grid;
