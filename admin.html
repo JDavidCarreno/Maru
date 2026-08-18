@@ -4,7 +4,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Admin — Maru</title>
-        <link rel="stylesheet" href="css/style.css?v=9" />
+        <link rel="stylesheet" href="css/style.css?v=10" />
         <style>
             /* ── Admin-specific styles ── */
             .admin-page {
@@ -850,7 +850,7 @@
         <div class="login-overlay" id="login-overlay">
             <div class="login-box">
                 <div class="login-logo">Maru</div>
-                <p class="login-subtitle">Panel de administración</p>
+                <p class="login-subtitle">Panel de administracion</p>
                 <form class="login-form" id="login-form">
                     <div class="form-group">
                         <label for="login-email">Email</label>
@@ -884,15 +884,15 @@
             </div>
         </div>
 
-        <!-- NAVEGACIÓN -->
+        <!-- NAVEGACION -->
         <nav>
             <a class="nav-logo" href="index.html">Maru</a>
             <ul>
-                <li><a href="index.html">Catálogo especial</a></li>
-                <li><a href="catalogo.html">Catálogo completo</a></li>
+                <li><a href="index.html">Catalogo especial</a></li>
+                <li><a href="catalogo.html">Catalogo completo</a></li>
                 <li>
                     <button class="nav-logout-btn" id="btn-logout">
-                        Cerrar sesión
+                        Cerrar sesion
                     </button>
                 </li>
             </ul>
@@ -902,10 +902,10 @@
             <!-- Header -->
             <div class="admin-header">
                 <div>
-                    <h1>⚙️ Panel de administración</h1>
+                    <h1>⚙️ Panel de administracion</h1>
                     <p>
-                        Gestioná tus productos desde acá. Los cambios se guardan
-                        automáticamente.
+                        Gestiona tus productos desde aqui. Los cambios se guardan
+                        automaticamente.
                     </p>
                 </div>
                 <div class="admin-header-actions">
@@ -934,9 +934,9 @@
                         <tr>
                             <th>Orden</th>
                             <th>Imagen</th>
-                            <th>Nombre / Categoría</th>
+                            <th>Nombre / Categoria</th>
                             <th>Precio</th>
-                            <th>Imágenes</th>
+                            <th>Imagenes</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -960,13 +960,13 @@
                                 type="text"
                                 id="name_field"
                                 name="name_field"
-                                placeholder="Ej: Jarrón de cerámica blanca"
+                                placeholder="Ej: Jarron de ceramica blanca"
                                 required
                             />
                         </div>
 
                         <div class="form-group">
-                            <label for="category_field">Categoría *</label>
+                            <label for="category_field">Categoria *</label>
                             <select
                                 id="category_field"
                                 name="category_field"
@@ -1003,22 +1003,22 @@
                         </div>
 
                         <div class="form-group full">
-                            <label for="description_field">Descripción</label>
+                            <label for="description_field">Descripcion</label>
                             <textarea
                                 id="description_field"
                                 name="description_field"
-                                placeholder="Describí el producto: materiales, medidas, usos…"
+                                placeholder="Describe el producto: materiales, medidas, usos…"
                             ></textarea>
                         </div>
                     </div>
 
-                    <!-- Imágenes -->
+                    <!-- Imagenes -->
                     <div class="images-section">
                         <div class="images-section-header">
                             <div>
-                                <span>Imágenes del producto</span><br />
+                                <span>Imagenes del producto</span><br />
                                 <small
-                                    >Pegá URLs de imágenes (mínimo 1,
+                                    >Pega URLs de imagenes (minimo 1,
                                     recomendado 3)</small
                                 >
                             </div>
@@ -1031,7 +1031,7 @@
                             </button>
                         </div>
                         <div id="images-container">
-                            <!-- filas de imagen se agregan dinámicamente -->
+                            <!-- filas de imagen se agregan dinamicamente -->
                         </div>
                     </div>
 
@@ -1040,7 +1040,7 @@
                             Agregar producto
                         </button>
                         <button type="button" id="btn-cancel">
-                            Cancelar edición
+                            Cancelar edicion
                         </button>
                     </div>
                 </form>
@@ -1053,7 +1053,7 @@
                 <div class="confirm-icon">⚠️</div>
                 <p id="confirm-message"></p>
                 <div class="confirm-btns">
-                    <button id="confirm-yes">Sí, eliminar</button>
+                    <button id="confirm-yes">Si, eliminar</button>
                     <button id="confirm-no">Cancelar</button>
                 </div>
             </div>
@@ -1061,7 +1061,7 @@
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <script src="js/supabase.js?v=2"></script>
-        <script src="js/store.js?v=3"></script>
-        <script src="js/admin.js?v=3"></script>
+        <script src="js/store.js?v=4"></script>
+        <script src="js/admin.js?v=4"></script>
     </body>
 </html>

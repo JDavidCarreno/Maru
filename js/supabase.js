@@ -1,6 +1,6 @@
 /**
- * supabase.js — configuración de conexión con Supabase.
- * Reemplazá los valores de SUPABASE_URL y SUPABASE_ANON_KEY con los tuyos.
+ * supabase.js — configuracion de conexion con Supabase.
+ * Reemplaza los valores de SUPABASE_URL y SUPABASE_ANON_KEY con los tuyos.
  */
 
 const SUPABASE_URL = "https://krvuetcsfwfvjunqujtc.supabase.co";

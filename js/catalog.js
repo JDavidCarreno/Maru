@@ -13,12 +13,12 @@ let currentFilter = null;
 let observer = null;
 // estado unificado del visor fullscreen
 let fsScale = 1; // escala total activa
-let fsTx = 0; // traslación total X
-let fsTy = 0; // traslación total Y
+let fsTx = 0; // traslacion total X
+let fsTy = 0; // traslacion total Y
 let fsFitScale = 1; // escala para encajar la imagen en pantalla
-let fsFitTx = 0; // traslación X del encaje
-let fsFitTy = 0; // traslación Y del encaje
-let fsRotation = 0; // rotación en grados (0/90/180/270)
+let fsFitTx = 0; // traslacion X del encaje
+let fsFitTy = 0; // traslacion Y del encaje
+let fsRotation = 0; // rotacion en grados (0/90/180/270)
 const PAGE_SIZE = 12;
 
 // ── RENDER (INFINITE SCROLL) ────────────────────────────
@@ -104,8 +104,8 @@ async function loadNextPage() {
 
   if (currentPage === 1 && products.length === 0) {
     grid.innerHTML = currentFilter
-      ? `<div class="empty-state"><div class="empty-icon">🔍</div><p>No hay productos en esta categoría.</p></div>`
-      : `<div class="empty-state"><div class="empty-icon">🛍️</div><p>Todavía no hay productos. <a href="admin.html">Ir al panel admin →</a></p></div>`;
+      ? `<div class="empty-state"><div class="empty-icon">🔍</div><p>No hay productos en esta categoria.</p></div>`
+      : `<div class="empty-state"><div class="empty-icon">🛍️</div><p>Todavia no hay productos. <a href="admin.html">Ir al panel admin →</a></p></div>`;
     sentinel.style.display = "none";
     isLoading = false;
     return;
@@ -192,8 +192,8 @@ function resetFsZoom() {
   fsTy = fsFitTy;
 }
 
-// Calcula el encaje a pantalla teniendo en cuenta la rotación.
-// Con transform-origin 0 0, la caja rotada se reubica según el cuadrante.
+// Calcula el encaje a pantalla teniendo en cuenta la rotacion.
+// Con transform-origin 0 0, la caja rotada se reubica segun el cuadrante.
 function computeFsFit(rotation, vw, vh, nw, nh) {
   const swap = rotation === 90 || rotation === 270;
   const effW = swap ? nh : nw;
@@ -357,15 +357,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // ── GESTOS FULLSCREEN (Pointer Events) ──────────────────
   // Usamos Pointer Events en lugar de Touch Events porque:
-  //  - Cada dedo tiene un ID único que persiste durante el gesto
+  //  - Cada dedo tiene un ID unico que persiste durante el gesto
   //  - Al cambiar la cantidad de dedos simplemente rebaseamos el estado
-  //  - No hay ambigüedad en e.touches vs e.changedTouches
+  //  - No hay ambiguedad en e.touches vs e.changedTouches
 
-  const fsPointers = new Map(); // pointerId → {x, y} posición actual
+  const fsPointers = new Map(); // pointerId → {x, y} posicion actual
   let fsGestureStart = null; // snapshot del estado al inicio del gesto actual
   let fsSwipeStartX = 0;
   let fsSwipeStartY = 0;
-  let fsIsDragging = false; // true si el dedo se movió lo suficiente
+  let fsIsDragging = false; // true si el dedo se movio lo suficiente
   let fsLastTapTime = 0;
   let fsLastTapX = 0;
   let fsLastTapY = 0;
@@ -400,7 +400,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     fsPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
     if (fsPointers.size === 1) {
-      // Primer dedo: guardar posición de inicio para swipe y double-tap
+      // Primer dedo: guardar posicion de inicio para swipe y double-tap
       fsSwipeStartX = e.clientX;
       fsSwipeStartY = e.clientY;
       fsIsDragging = false;
@@ -427,7 +427,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         fsTy = fsGestureStart.ty + dy;
         applyFsTransform(false);
       }
-      // Sin zoom: el movimiento de un dedo es solo para swipe (se evalúa en pointerup)
+      // Sin zoom: el movimiento de un dedo es solo para swipe (se evalua en pointerup)
     } else if (pts.length >= 2) {
       // Pinch-to-zoom con 2 dedos
       const midX = (pts[0].x + pts[1].x) / 2;
@@ -439,7 +439,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const ratio = newScale / fsGestureStart.scale;
 
       // El punto de imagen que estaba bajo fsGestureStart.mid queda ahora bajo mid actual.
-      // Fórmula: tx = currentMid - (startMid - startTx) * ratio
+      // Formula: tx = currentMid - (startMid - startTx) * ratio
       fsScale = newScale;
       fsTx = midX - (fsGestureStart.midX - fsGestureStart.tx) * ratio;
       fsTy = midY - (fsGestureStart.midY - fsGestureStart.ty) * ratio;
@@ -459,7 +459,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // Todos los dedos levantados — evaluar qué acción fue
+    // Todos los dedos levantados — evaluar que accion fue
     const wasDrag = fsIsDragging;
     fsIsDragging = false;
     fsGestureStart = null;
@@ -491,7 +491,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
 
       if (dt < 300 && tapDist < 40) {
-        // Segundo tap rápido
+        // Segundo tap rapido
         if (fsScale > fsFitScale * 1.01) {
           // Estaba zoomado → volver al encaje
           resetFsZoom();

@@ -1,10 +1,10 @@
 /**
- * admin.js — lógica del panel de administración con Supabase.
+ * admin.js — logica del panel de administracion con Supabase.
  */
 
 let editingId = null;
 let existingImages = []; // URLs ya guardadas al editar un producto
-let removedImages = []; // URLs de imágenes quitadas en la edición actual
+let removedImages = []; // URLs de imagenes quitadas en la edicion actual
 let adminProducts = []; // lista actual de productos en el orden visible
 
 // ── AUTH ─────────────────────────────────────────────────
@@ -31,15 +31,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("login-form").addEventListener("submit", handleLogin);
   document.getElementById("btn-logout").addEventListener("click", logout);
 
-  // luego verificamos si ya hay sesión activa
+  // luego verificamos si ya hay sesion activa
   try {
     const {
       data: { session },
     } = await db.auth.getSession();
-    // verificamos que sea un usuario real (con email), no una sesión anónima
+    // verificamos que sea un usuario real (con email), no una sesion anonima
     if (session?.user?.email) await initAdmin();
   } catch (err) {
-    console.error("Error al verificar sesión:", err);
+    console.error("Error al verificar sesion:", err);
   }
 });
 
@@ -111,7 +111,7 @@ async function renderAdminTable() {
 
   if (adminProducts.length === 0) {
     tbody.innerHTML =
-      '<tr><td colspan="6" class="table-empty">No hay productos. Cargá el primero 👆</td></tr>';
+      '<tr><td colspan="6" class="table-empty">No hay productos. Carga el primero 👆</td></tr>';
     return;
   }
 
@@ -135,12 +135,12 @@ function renderTableRows() {
         <button class="admin-order-btn" onclick="moveProduct(${index}, 1)" ${index === adminProducts.length - 1 ? "disabled" : ""} aria-label="Bajar ${p.name}">↓</button>
       </td>
       <td data-label="Imagen">${thumb}</td>
-      <td data-label="Nombre / Categoría">
+      <td data-label="Nombre / Categoria">
         <strong>${p.name}</strong>
         <br><span class="admin-cat-badge">${p.category}</span>
       </td>
       <td data-label="Precio">${formatPrice(p.price)}</td>
-      <td data-label="Imágenes" class="admin-img-count">${images.length} img.</td>
+      <td data-label="Imagenes" class="admin-img-count">${images.length} img.</td>
       <td class="admin-actions">
         <button class="admin-btn edit"   onclick="startEdit(${p.id})">✏️ Editar</button>
         <button class="admin-btn delete" onclick="confirmDelete(${p.id})">🗑️ Eliminar</button>
@@ -204,13 +204,13 @@ async function handleFormSubmit(e) {
   const is_forall = document.getElementById("is_forall_field").value === "1";
 
   if (!name || !category || isNaN(price)) {
-    showToast("Completá los campos obligatorios.", "error");
+    showToast("Completa los campos obligatorios.", "error");
     return;
   }
 
   setBusy(true);
 
-  // subir imágenes nuevas y combinarlas con las existentes
+  // subir imagenes nuevas y combinarlas con las existentes
   const uploadedUrls = await uploadPendingImages();
   const allImages = [...existingImages, ...uploadedUrls];
 
@@ -243,9 +243,9 @@ async function handleFormSubmit(e) {
   }
 }
 
-// Borra del storage las imágenes quitadas durante la edición,
-// solo si ya no son usadas por ningún otro producto.
-// Devuelve cuántas se lograron borrar.
+// Borra del storage las imagenes quitadas durante la edicion,
+// solo si ya no son usadas por ningun otro producto.
+// Devuelve cuantas se lograron borrar.
 async function deleteRemovedImages() {
   if (!removedImages.length) return 0;
 
@@ -265,7 +265,7 @@ async function deleteRemovedImages() {
   removedImages = [];
 
   if (kept.length) {
-    console.warn("Imágenes no borradas del storage:", kept);
+    console.warn("Imagenes no borradas del storage:", kept);
   }
   return deleted;
 }
@@ -286,7 +286,7 @@ async function startEdit(id) {
   form.price_field.value = p.price;
   form.description_field.value = p.description || "";
 
-  // mostrar imágenes existentes
+  // mostrar imagenes existentes
   const container = document.getElementById("images-container");
   container.innerHTML = "";
   existingImages.forEach((url, i) => addExistingImageRow(url, i));
@@ -312,7 +312,7 @@ function resetForm() {
 
 // ── IMAGE ROWS ───────────────────────────────────────────
 
-// Fila para imagen ya guardada (muestra miniatura + botón de eliminar)
+// Fila para imagen ya guardada (muestra miniatura + boton de eliminar)
 function addExistingImageRow(url, index) {
   const container = document.getElementById("images-container");
   const row = document.createElement("div");
@@ -353,7 +353,7 @@ function addImageRow() {
   const status = row.querySelector(".img-status");
   const preview = row.querySelector(".img-preview-thumb");
 
-  // el botón visible dispara el input oculto
+  // el boton visible dispara el input oculto
   pickBtn.addEventListener("click", () => input.click());
 
   input.addEventListener("change", function () {

@@ -93,14 +93,14 @@ async function saveProductOrder(ids) {
 }
 
 async function deleteProduct(id) {
-  // primero obtenemos las imágenes del producto
+  // primero obtenemos las imagenes del producto
   const { data: product } = await db
     .from(TABLE)
     .select("images")
     .eq("id", id)
     .single();
 
-  // borramos las imágenes del bucket
+  // borramos las imagenes del bucket
   if (product?.images?.length) {
     const paths = product.images
       .map((url) => url.split(`${BUCKET}/`)[1])
@@ -122,10 +122,10 @@ async function deleteProduct(id) {
   return true;
 }
 
-// ── IMÁGENES ─────────────────────────────────────────────
+// ── IMAGENES ─────────────────────────────────────────────
 
 // Redimensiona y comprime la imagen antes de subirla,
-// para que pese mucho menos y cargue rápido en el catálogo.
+// para que pese mucho menos y cargue rapido en el catalogo.
 function compressImage(file, maxDimension = 1920, quality = 0.82) {
   return new Promise((resolve) => {
     if (!file.type || !file.type.startsWith("image/")) {
@@ -197,8 +197,8 @@ async function uploadImage(file) {
   return data.publicUrl;
 }
 
-// Verifica si una URL de imagen está siendo usada por otro producto.
-// Ante cualquier error, devuelve true para no borrar imágenes en uso.
+// Verifica si una URL de imagen esta siendo usada por otro producto.
+// Ante cualquier error, devuelve true para no borrar imagenes en uso.
 async function imageIsUsedElsewhere(url, excludeId = null) {
   try {
     let query = db.from(TABLE).select("id").contains("images", [url]);
@@ -216,7 +216,7 @@ async function imageIsUsedElsewhere(url, excludeId = null) {
 }
 
 async function deleteImage(url) {
-  // extrae el path desde la URL pública
+  // extrae el path desde la URL publica
   const path = url.split(`${BUCKET}/`)[1];
   if (!path) return false;
   const { error } = await db.storage.from(BUCKET).remove([path]);
@@ -258,5 +258,5 @@ async function setSetting(key, value) {
 // ── HELPERS ──────────────────────────────────────────────
 
 function formatPrice(amount) {
-  return "$" + Number(amount).toLocaleString("es-AR");
+  return "$" + Number(amount).toLocaleString("es-CO");
 }

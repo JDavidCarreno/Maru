@@ -380,6 +380,20 @@ footer strong {
     color: var(--blush);
 }
 
+.footer-contact {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+}
+
+.footer-wa {
+    width: 22px;
+    height: 22px;
+    color: #25d366;
+    flex-shrink: 0;
+}
+
 /* ── FULLSCREEN OVERLAY ── */
 .fs-overlay {
     position: fixed;
