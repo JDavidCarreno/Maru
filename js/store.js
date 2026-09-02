@@ -38,6 +38,9 @@ async function getProductsPage(page, pageSize = 12, category = null, isForAll = 
   }
   // isForAll === true → no filter, todos los productos
 
+  // solo productos visibles (null = visible para productos antiguos)
+  query = query.or("is_visible.is.null,is_visible.eq.true");
+
   const { data, error } = await query.range(from, to);
 
   if (error) {

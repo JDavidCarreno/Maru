@@ -105,13 +105,13 @@ function bindThemeEvents() {
 async function renderAdminTable() {
   const tbody = document.getElementById("admin-tbody");
   tbody.innerHTML =
-    '<tr><td colspan="6" class="table-empty">Cargando…</td></tr>';
+    '<tr><td colspan="7" class="table-empty">Cargando…</td></tr>';
 
   adminProducts = await getProducts();
 
   if (adminProducts.length === 0) {
     tbody.innerHTML =
-      '<tr><td colspan="6" class="table-empty">No hay productos. Carga el primero 👆</td></tr>';
+      '<tr><td colspan="7" class="table-empty">No hay productos. Carga el primero 👆</td></tr>';
     return;
   }
 
@@ -128,7 +128,12 @@ function renderTableRows() {
       ? `<img class="admin-thumb" src="${images[0]}" alt="${p.name}">`
       : `<div class="admin-thumb" style="background:linear-gradient(135deg,#f8e9e0,#f2d5c8)"></div>`;
 
+    const visible = p.is_visible !== false;
+    const visClass = visible ? "on" : "off";
+    const visLabel = visible ? "✓ Visible" : "✗ Oculto";
+
     const tr = document.createElement("tr");
+    if (!visible) tr.classList.add("row-hidden");
     tr.innerHTML = `
       <td data-label="Orden" class="admin-order">
         <button class="admin-order-btn" onclick="moveProduct(${index}, -1)" ${index === 0 ? "disabled" : ""} aria-label="Subir ${p.name}">↑</button>
@@ -141,6 +146,9 @@ function renderTableRows() {
       </td>
       <td data-label="Precio">${formatPrice(p.price)}</td>
       <td data-label="Imagenes" class="admin-img-count">${images.length} img.</td>
+      <td data-label="Visible">
+        <button class="admin-btn visible-toggle ${visClass}" onclick="toggleVisible(${p.id}, ${!visible})">${visLabel}</button>
+      </td>
       <td class="admin-actions">
         <button class="admin-btn edit"   onclick="startEdit(${p.id})">✏️ Editar</button>
         <button class="admin-btn delete" onclick="confirmDelete(${p.id})">🗑️ Eliminar</button>
@@ -158,6 +166,40 @@ function moveProduct(index, delta) {
   const [item] = adminProducts.splice(index, 1);
   adminProducts.splice(target, 0, item);
   renderTableRows();
+}
+
+async function toggleVisible(id, visible) {
+  const p = adminProducts.find((prod) => prod.id === id);
+  if (!p) return;
+
+  const tr = document.querySelectorAll("#admin-tbody tr")[adminProducts.indexOf(p)];
+
+  const btn = tr?.querySelector(".visible-toggle");
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Guardando…";
+  }
+
+  const ok = await updateProduct(id, { is_visible: visible });
+  if (ok) {
+    p.is_visible = visible;
+    const visClass = visible ? "on" : "off";
+    const visLabel = visible ? "✓ Visible" : "✗ Oculto";
+    if (btn) {
+      btn.disabled = false;
+      btn.className = `admin-btn visible-toggle ${visClass}`;
+      btn.textContent = visLabel;
+      btn.onclick = () => toggleVisible(id, !visible);
+    }
+    if (tr) tr.classList.toggle("row-hidden", !visible);
+    showToast(visible ? "✅ Producto visible." : "🙈 Producto oculto.");
+  } else {
+    showToast("Error al cambiar visibilidad.", "error");
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = visible ? "✓ Visible" : "✗ Oculto";
+    }
+  }
 }
 
 async function saveOrder() {
